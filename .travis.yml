@@ -61,5 +61,5 @@ script: ./configure --disable-silent-rules
         make &&
         make check
 
-after_success: bash <(curl -s https://codecov.io/bash)
+after_success: curl -s https://codecov.io/bash | bash -s -- -a -lp
 after_failure: test -r tests/test-suite.log && cat tests/test-suite.log
