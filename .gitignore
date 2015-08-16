@@ -44,3 +44,7 @@ Makefile
 
 # cscope files
 cscope.*
+
+# gcov
+*.gcda
+*.gcno
