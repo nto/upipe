@@ -13,7 +13,8 @@ dist_check_SCRIPTS = \
 	valgrind_wrapper.sh \
 	uref_uri_test.sh \
 	ustring_test.sh \
-	upipe_m3u_reader_test.sh
+	upipe_m3u_reader_test.sh \
+	upipe_tcp_test.sh
 
 dist_check_DATA = \
 	valgrind.supp \
@@ -156,7 +157,8 @@ check_PROGRAMS += \
 	upipe_worker_linear_test \
 	upipe_worker_sink_test \
 	upipe_worker_source_test \
-	upipe_m3u_reader_test
+	upipe_m3u_reader_test \
+	upipe_tcp_test
 
 TESTS += \
 	upump_ev_test \
@@ -172,7 +174,8 @@ TESTS += \
 	upipe_worker_linear_test \
 	upipe_worker_sink_test \
 	upipe_worker_source_test \
-	upipe_m3u_reader_test.sh
+	upipe_m3u_reader_test.sh \
+	upipe_tcp_test.sh
 
 if HAVE_PTHREAD
 check_PROGRAMS += \
@@ -390,3 +393,4 @@ upipe_alsa_sink_test_LDADD = $(LDADD) -lasound $(top_builddir)/lib/upipe-alsa/li
 upump_ecore_test_LDADD = $(LDADD) $(ECORE_LIBS) $(top_builddir)/lib/upump-ecore/libupump_ecore.la
 upump_ecore_test_CFLAGS = $(ECORE_CFLAGS) -Wall
 upipe_m3u_reader_test_LDADD = $(LDADD) -lev $(top_builddir)/lib/upump-ev/libupump_ev.la $(top_builddir)/lib/upipe-modules/libupipe_modules.la
+upipe_tcp_test_LDADD = $(LDADD) -lev $(top_builddir)/lib/upump-ev/libupump_ev.la $(top_builddir)/lib/upipe-modules/libupipe_modules.la

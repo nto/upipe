@@ -31,6 +31,8 @@ myinclude_HEADERS = \
 	upipe_even.h \
 	upipe_udp_source.h \
 	upipe_udp_sink.h \
+	upipe_tcp_source.h \
+	upipe_tcp_sink.h \
 	upipe_http_source.h \
 	upipe_rtp_decaps.h \
 	upipe_rtp_prepend.h \
