@@ -1,5 +1,9 @@
 language: c
 
+env:
+  global:
+    - MAKEFLAGS=-j2
+
 compiler:
   - clang
   - gcc
