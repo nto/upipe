@@ -55,7 +55,7 @@ before_script: autoreconf -i
 
 script: ./configure --disable-silent-rules
           CPPFLAGS="-I$PWD/nacl_sdk/pepper_43/include"
-          CFLAGS="--coverage"
+          CFLAGS="-Werror -Wno-error=deprecated-declarations -Wno-error=unused-function --coverage"
           CXXFLAGS="--coverage"
           LDFLAGS="-L$PWD/nacl_sdk/pepper_43/lib/glibc_x86_64 --coverage" &&
         make &&
