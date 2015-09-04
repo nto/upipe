@@ -16,6 +16,8 @@ libupipe_modules_la_SOURCES = \
 	upipe_udp_source.c \
 	upipe_udp.c \
 	upipe_udp.h \
+	upipe_tcp_source.c \
+	upipe_tcp_sink.c \
 	upipe_http_source.c \
 	http-parser/http_parser.c \
 	http-parser/http_parser.h \
