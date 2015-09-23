@@ -1,0 +1,1090 @@
+<!doctype html>
+<html>
+<head>
+<title>ebur128/ebur128.c</title>
+<style type="text/css">
+ body { color:#000000; background-color:#ffffff }
+ body { font-family:Helvetica, sans-serif; font-size:10pt }
+ h1 { font-size:14pt }
+ .code { border-collapse:collapse; width:100%; }
+ .code { font-family: "Monospace", monospace; font-size:10pt }
+ .code { line-height: 1.2em }
+ .comment { color: green; font-style: oblique }
+ .keyword { color: blue }
+ .string_literal { color: red }
+ .directive { color: darkmagenta }
+ .expansion { display: none; }
+ .macro:hover .expansion { display: block; border: 2px solid #FF0000; padding: 2px; background-color:#FFF0F0; font-weight: normal;   -webkit-border-radius:5px;  -webkit-box-shadow:1px 1px 7px #000; position: absolute; top: -1em; left:10em; z-index: 1 } 
+ .macro { color: darkmagenta; background-color:LemonChiffon; position: relative }
+ .num { width:2.5em; padding-right:2ex; background-color:#eeeeee }
+ .num { text-align:right; font-size:8pt }
+ .num { color:#444444 }
+ .line { padding-left: 1ex; border-left: 3px solid #ccc }
+ .line { white-space: pre }
+ .msg { -webkit-box-shadow:1px 1px 7px #000 }
+ .msg { -webkit-border-radius:5px }
+ .msg { font-family:Helvetica, sans-serif; font-size:8pt }
+ .msg { float:left }
+ .msg { padding:0.25em 1ex 0.25em 1ex }
+ .msg { margin-top:10px; margin-bottom:10px }
+ .msg { font-weight:bold }
+ .msg { max-width:60em; word-wrap: break-word; white-space: pre-wrap }
+ .msgT { padding:0x; spacing:0x }
+ .msgEvent { background-color:#fff8b4; color:#000000 }
+ .msgControl { background-color:#bbbbbb; color:#000000 }
+ .mrange { background-color:#dfddf3 }
+ .mrange { border-bottom:1px solid #6F9DBE }
+ .PathIndex { font-weight: bold; padding:0px 5px; margin-right:5px; }
+ .PathIndex { -webkit-border-radius:8px }
+ .PathIndexEvent { background-color:#bfba87 }
+ .PathIndexControl { background-color:#8c8c8c }
+ .PathNav a { text-decoration:none; font-size: larger }
+ .CodeInsertionHint { font-weight: bold; background-color: #10dd10 }
+ .CodeRemovalHint { background-color:#de1010 }
+ .CodeRemovalHint { border-bottom:1px solid #6F9DBE }
+ table.simpletable {
+   padding: 5px;
+   font-size:12pt;
+   margin:20px;
+   border-collapse: collapse; border-spacing: 0px;
+ }
+ td.rowname {
+   text-align:right; font-weight:bold; color:#444444;
+   padding-right:2ex; }
+</style>
+</head>
+<body>
+<!-- BUGDESC Call to 'malloc' has an allocation size of 0 bytes -->
+
+<!-- BUGTYPE Undefined allocation of 0 bytes (CERT MEM04-C; CWE-131) -->
+
+<!-- BUGCATEGORY Unix API -->
+
+<!-- BUGFILE /home/nitro/upipe/lib/upipe-filters/ebur128/ebur128.c -->
+
+<!-- FILENAME ebur128.c -->
+
+<!-- FUNCTIONNAME ebur128_change_parameters -->
+
+<!-- BUGLINE 611 -->
+
+<!-- BUGCOLUMN 36 -->
+
+<!-- BUGPATHLENGTH 2 -->
+
+<!-- BUGMETAEND -->
+<!-- REPORTHEADER -->
+<h3>Bug Summary</h3>
+<table class="simpletable">
+<tr><td class="rowname">File:</td><td>lib/upipe-filters/ebur128/ebur128.c</td></tr>
+<tr><td class="rowname">Location:</td><td><a href="#EndPath">line 611, column 36</a></td></tr>
+<tr><td class="rowname">Description:</td><td>Call to 'malloc' has an allocation size of 0 bytes</td></tr>
+</table>
+<!-- REPORTSUMMARYEXTRA -->
+<h3>Annotated Source Code</h3>
+<table class="code">
+<tr><td class="num" id="LN1">1</td><td class="line"><span class='comment'>/* See COPYING file for copyright and license details. */</span></td></tr>
+<tr><td class="num" id="LN2">2</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN3">3</td><td class="line"><span class='directive'>#include "ebur128.h"</span></td></tr>
+<tr><td class="num" id="LN4">4</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN5">5</td><td class="line"><span class='directive'>#include &lt;float.h&gt;</span></td></tr>
+<tr><td class="num" id="LN6">6</td><td class="line"><span class='directive'>#include &lt;limits.h&gt;</span></td></tr>
+<tr><td class="num" id="LN7">7</td><td class="line"><span class='directive'>#include &lt;math.h&gt; /* You may have to define _USE_MATH_DEFINES if you use MSVC */</span></td></tr>
+<tr><td class="num" id="LN8">8</td><td class="line"><span class='directive'>#include &lt;stdio.h&gt;</span></td></tr>
+<tr><td class="num" id="LN9">9</td><td class="line"><span class='directive'>#include &lt;stdlib.h&gt;</span></td></tr>
+<tr><td class="num" id="LN10">10</td><td class="line"><span class='directive'>#include &lt;string.h&gt;</span></td></tr>
+<tr><td class="num" id="LN11">11</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN12">12</td><td class="line"><span class='comment'>/* This can be replaced by any BSD-like queue implementation. */</span></td></tr>
+<tr><td class="num" id="LN13">13</td><td class="line"><span class='directive'>#include &lt;sys/queue.h&gt;</span></td></tr>
+<tr><td class="num" id="LN14">14</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN15">15</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN16">16</td><td class="line">  <span class='directive'>#include &lt;speex/speex_resampler.h&gt;</span></td></tr>
+<tr><td class="num" id="LN17">17</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN18">18</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN19">19</td><td class="line"><span class='directive'>#define <span class='macro'>CHECK_ERROR(condition, errorcode, goto_point)<span class='expansion'>if ((condition)) { errcode = (errorcode); goto goto_point; }</span></span>                          \</span></td></tr>
+<tr><td class="num" id="LN20">20</td><td class="line">  <span class='directive'>if ((condition)) {                                                           \</span></td></tr>
+<tr><td class="num" id="LN21">21</td><td class="line">    <span class='directive'>errcode = (errorcode);                                                     \</span></td></tr>
+<tr><td class="num" id="LN22">22</td><td class="line">    <span class='directive'>goto goto_point;                                                           \</span></td></tr>
+<tr><td class="num" id="LN23">23</td><td class="line">  <span class='directive'>}</span></td></tr>
+<tr><td class="num" id="LN24">24</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN25">25</td><td class="line"><span class='macro'>SLIST_HEAD(ebur128_double_queue, ebur128_dq_entry)<span class='expansion'>struct ebur128_double_queue { struct ebur128_dq_entry *slh_first<br>; }</span></span>;</td></tr>
+<tr><td class="num" id="LN26">26</td><td class="line"><span class='keyword'>struct</span> ebur128_dq_entry {</td></tr>
+<tr><td class="num" id="LN27">27</td><td class="line">  <span class='keyword'>double</span> z;</td></tr>
+<tr><td class="num" id="LN28">28</td><td class="line">  <span class='macro'>SLIST_ENTRY(ebur128_dq_entry)<span class='expansion'>struct { struct ebur128_dq_entry *sle_next; }</span></span> entries;</td></tr>
+<tr><td class="num" id="LN29">29</td><td class="line">};</td></tr>
+<tr><td class="num" id="LN30">30</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN31">31</td><td class="line"><span class='keyword'>struct</span> ebur128_state_internal {</td></tr>
+<tr><td class="num" id="LN32">32</td><td class="line">  <span class='comment'>/** Filtered audio data (used as ring buffer). */</span></td></tr>
+<tr><td class="num" id="LN33">33</td><td class="line">  <span class='keyword'>double</span>* audio_data;</td></tr>
+<tr><td class="num" id="LN34">34</td><td class="line">  <span class='comment'>/** Size of audio_data array. */</span></td></tr>
+<tr><td class="num" id="LN35">35</td><td class="line">  size_t audio_data_frames;</td></tr>
+<tr><td class="num" id="LN36">36</td><td class="line">  <span class='comment'>/** Current index for audio_data. */</span></td></tr>
+<tr><td class="num" id="LN37">37</td><td class="line">  size_t audio_data_index;</td></tr>
+<tr><td class="num" id="LN38">38</td><td class="line">  <span class='comment'>/** How many frames are needed for a gating block. Will correspond to 400ms</span></td></tr>
+<tr><td class="num" id="LN39">39</td><td class="line">   <span class='comment'>*  of audio at initialization, and 100ms after the first block (75% overlap</span></td></tr>
+<tr><td class="num" id="LN40">40</td><td class="line">   <span class='comment'>*  as specified in the 2011 revision of BS1770). */</span></td></tr>
+<tr><td class="num" id="LN41">41</td><td class="line">  <span class='keyword'>unsigned</span> <span class='keyword'>long</span> needed_frames;</td></tr>
+<tr><td class="num" id="LN42">42</td><td class="line">  <span class='comment'>/** The channel map. Has as many elements as there are channels. */</span></td></tr>
+<tr><td class="num" id="LN43">43</td><td class="line">  <span class='keyword'>int</span>* channel_map;</td></tr>
+<tr><td class="num" id="LN44">44</td><td class="line">  <span class='comment'>/** How many samples fit in 100ms (rounded). */</span></td></tr>
+<tr><td class="num" id="LN45">45</td><td class="line">  <span class='keyword'>unsigned</span> <span class='keyword'>long</span> samples_in_100ms;</td></tr>
+<tr><td class="num" id="LN46">46</td><td class="line">  <span class='comment'>/** BS.1770 filter coefficients (nominator). */</span></td></tr>
+<tr><td class="num" id="LN47">47</td><td class="line">  <span class='keyword'>double</span> b[5];</td></tr>
+<tr><td class="num" id="LN48">48</td><td class="line">  <span class='comment'>/** BS.1770 filter coefficients (denominator). */</span></td></tr>
+<tr><td class="num" id="LN49">49</td><td class="line">  <span class='keyword'>double</span> a[5];</td></tr>
+<tr><td class="num" id="LN50">50</td><td class="line">  <span class='comment'>/** BS.1770 filter state. */</span></td></tr>
+<tr><td class="num" id="LN51">51</td><td class="line">  <span class='keyword'>double</span> v[5][5];</td></tr>
+<tr><td class="num" id="LN52">52</td><td class="line">  <span class='comment'>/** Linked list of block energies. */</span></td></tr>
+<tr><td class="num" id="LN53">53</td><td class="line">  <span class='keyword'>struct</span> ebur128_double_queue block_list;</td></tr>
+<tr><td class="num" id="LN54">54</td><td class="line">  <span class='comment'>/** Linked list of 3s-block energies, used to calculate LRA. */</span></td></tr>
+<tr><td class="num" id="LN55">55</td><td class="line">  <span class='keyword'>struct</span> ebur128_double_queue short_term_block_list;</td></tr>
+<tr><td class="num" id="LN56">56</td><td class="line">  <span class='keyword'>int</span> use_histogram;</td></tr>
+<tr><td class="num" id="LN57">57</td><td class="line">  <span class='keyword'>unsigned</span> <span class='keyword'>long</span> *block_energy_histogram;</td></tr>
+<tr><td class="num" id="LN58">58</td><td class="line">  <span class='keyword'>unsigned</span> <span class='keyword'>long</span> *short_term_block_energy_histogram;</td></tr>
+<tr><td class="num" id="LN59">59</td><td class="line">  <span class='comment'>/** Keeps track of when a new short term block is needed. */</span></td></tr>
+<tr><td class="num" id="LN60">60</td><td class="line">  size_t short_term_frame_counter;</td></tr>
+<tr><td class="num" id="LN61">61</td><td class="line">  <span class='comment'>/** Maximum sample peak, one per channel */</span></td></tr>
+<tr><td class="num" id="LN62">62</td><td class="line">  <span class='keyword'>double</span>* sample_peak;</td></tr>
+<tr><td class="num" id="LN63">63</td><td class="line">  <span class='comment'>/** Maximum true peak, one per channel */</span></td></tr>
+<tr><td class="num" id="LN64">64</td><td class="line">  <span class='keyword'>double</span>* true_peak;</td></tr>
+<tr><td class="num" id="LN65">65</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN66">66</td><td class="line">  SpeexResamplerState* resampler;</td></tr>
+<tr><td class="num" id="LN67">67</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN68">68</td><td class="line">  size_t oversample_factor;</td></tr>
+<tr><td class="num" id="LN69">69</td><td class="line">  <span class='keyword'>float</span>* resampler_buffer_input;</td></tr>
+<tr><td class="num" id="LN70">70</td><td class="line">  size_t resampler_buffer_input_frames;</td></tr>
+<tr><td class="num" id="LN71">71</td><td class="line">  <span class='keyword'>float</span>* resampler_buffer_output;</td></tr>
+<tr><td class="num" id="LN72">72</td><td class="line">  size_t resampler_buffer_output_frames;</td></tr>
+<tr><td class="num" id="LN73">73</td><td class="line">};</td></tr>
+<tr><td class="num" id="LN74">74</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN75">75</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>double</span> relative_gate = -10.0;</td></tr>
+<tr><td class="num" id="LN76">76</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN77">77</td><td class="line"><span class='comment'>/* Those will be calculated when initializing the library */</span></td></tr>
+<tr><td class="num" id="LN78">78</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>double</span> relative_gate_factor;</td></tr>
+<tr><td class="num" id="LN79">79</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>double</span> minus_twenty_decibels;</td></tr>
+<tr><td class="num" id="LN80">80</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>double</span> histogram_energies[1000];</td></tr>
+<tr><td class="num" id="LN81">81</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>double</span> histogram_energy_boundaries[1001];</td></tr>
+<tr><td class="num" id="LN82">82</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN83">83</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>void</span> ebur128_init_filter(ebur128_state* st) {</td></tr>
+<tr><td class="num" id="LN84">84</td><td class="line">  <span class='keyword'>int</span> i, j;</td></tr>
+<tr><td class="num" id="LN85">85</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN86">86</td><td class="line">  <span class='keyword'>double</span> f0 = 1681.974450955533;</td></tr>
+<tr><td class="num" id="LN87">87</td><td class="line">  <span class='keyword'>double</span> G  =    3.999843853973347;</td></tr>
+<tr><td class="num" id="LN88">88</td><td class="line">  <span class='keyword'>double</span> Q  =    0.7071752369554196;</td></tr>
+<tr><td class="num" id="LN89">89</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN90">90</td><td class="line">  <span class='keyword'>double</span> K  = tan(<span class='macro'>M_PI<span class='expansion'>3.14159265358979323846</span></span> * f0 / (<span class='keyword'>double</span>) st-&gt;samplerate);</td></tr>
+<tr><td class="num" id="LN91">91</td><td class="line">  <span class='keyword'>double</span> Vh = pow(10.0, G / 20.0);</td></tr>
+<tr><td class="num" id="LN92">92</td><td class="line">  <span class='keyword'>double</span> Vb = pow(Vh, 0.4996667741545416);</td></tr>
+<tr><td class="num" id="LN93">93</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN94">94</td><td class="line">  <span class='keyword'>double</span> pb[3] = {0.0,  0.0, 0.0};</td></tr>
+<tr><td class="num" id="LN95">95</td><td class="line">  <span class='keyword'>double</span> pa[3] = {1.0,  0.0, 0.0};</td></tr>
+<tr><td class="num" id="LN96">96</td><td class="line">  <span class='keyword'>double</span> rb[3] = {1.0, -2.0, 1.0};</td></tr>
+<tr><td class="num" id="LN97">97</td><td class="line">  <span class='keyword'>double</span> ra[3] = {1.0,  0.0, 0.0};</td></tr>
+<tr><td class="num" id="LN98">98</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN99">99</td><td class="line">  <span class='keyword'>double</span> a0 =      1.0 + K / Q + K * K      ;</td></tr>
+<tr><td class="num" id="LN100">100</td><td class="line">  pb[0] =     (Vh + Vb * K / Q + K * K) / a0;</td></tr>
+<tr><td class="num" id="LN101">101</td><td class="line">  pb[1] =           2.0 * (K * K -  Vh) / a0;</td></tr>
+<tr><td class="num" id="LN102">102</td><td class="line">  pb[2] =     (Vh - Vb * K / Q + K * K) / a0;</td></tr>
+<tr><td class="num" id="LN103">103</td><td class="line">  pa[1] =           2.0 * (K * K - 1.0) / a0;</td></tr>
+<tr><td class="num" id="LN104">104</td><td class="line">  pa[2] =         (1.0 - K / Q + K * K) / a0;</td></tr>
+<tr><td class="num" id="LN105">105</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN106">106</td><td class="line">  <span class='comment'>/* fprintf(stderr, "%.14f %.14f %.14f %.14f %.14f\n",</span></td></tr>
+<tr><td class="num" id="LN107">107</td><td class="line">                     <span class='comment'>b1[0], b1[1], b1[2], a1[1], a1[2]); */</span></td></tr>
+<tr><td class="num" id="LN108">108</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN109">109</td><td class="line">  f0 = 38.13547087602444;</td></tr>
+<tr><td class="num" id="LN110">110</td><td class="line">  Q  =  0.5003270373238773;</td></tr>
+<tr><td class="num" id="LN111">111</td><td class="line">  K  = tan(<span class='macro'>M_PI<span class='expansion'>3.14159265358979323846</span></span> * f0 / (<span class='keyword'>double</span>) st-&gt;samplerate);</td></tr>
+<tr><td class="num" id="LN112">112</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN113">113</td><td class="line">  ra[1] =   2.0 * (K * K - 1.0) / (1.0 + K / Q + K * K);</td></tr>
+<tr><td class="num" id="LN114">114</td><td class="line">  ra[2] = (1.0 - K / Q + K * K) / (1.0 + K / Q + K * K);</td></tr>
+<tr><td class="num" id="LN115">115</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN116">116</td><td class="line">  <span class='comment'>/* fprintf(stderr, "%.14f %.14f\n", a2[1], a2[2]); */</span></td></tr>
+<tr><td class="num" id="LN117">117</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN118">118</td><td class="line">  st-&gt;d-&gt;b[0] = pb[0] * rb[0];</td></tr>
+<tr><td class="num" id="LN119">119</td><td class="line">  st-&gt;d-&gt;b[1] = pb[0] * rb[1] + pb[1] * rb[0];</td></tr>
+<tr><td class="num" id="LN120">120</td><td class="line">  st-&gt;d-&gt;b[2] = pb[0] * rb[2] + pb[1] * rb[1] + pb[2] * rb[0];</td></tr>
+<tr><td class="num" id="LN121">121</td><td class="line">  st-&gt;d-&gt;b[3] = pb[1] * rb[2] + pb[2] * rb[1];</td></tr>
+<tr><td class="num" id="LN122">122</td><td class="line">  st-&gt;d-&gt;b[4] = pb[2] * rb[2];</td></tr>
+<tr><td class="num" id="LN123">123</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN124">124</td><td class="line">  st-&gt;d-&gt;a[0] = pa[0] * ra[0];</td></tr>
+<tr><td class="num" id="LN125">125</td><td class="line">  st-&gt;d-&gt;a[1] = pa[0] * ra[1] + pa[1] * ra[0];</td></tr>
+<tr><td class="num" id="LN126">126</td><td class="line">  st-&gt;d-&gt;a[2] = pa[0] * ra[2] + pa[1] * ra[1] + pa[2] * ra[0];</td></tr>
+<tr><td class="num" id="LN127">127</td><td class="line">  st-&gt;d-&gt;a[3] = pa[1] * ra[2] + pa[2] * ra[1];</td></tr>
+<tr><td class="num" id="LN128">128</td><td class="line">  st-&gt;d-&gt;a[4] = pa[2] * ra[2];</td></tr>
+<tr><td class="num" id="LN129">129</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN130">130</td><td class="line">  <span class='keyword'>for</span> (i = 0; i &lt; 5; ++i) {</td></tr>
+<tr><td class="num" id="LN131">131</td><td class="line">    <span class='keyword'>for</span> (j = 0; j &lt; 5; ++j) {</td></tr>
+<tr><td class="num" id="LN132">132</td><td class="line">      st-&gt;d-&gt;v[i][j] = 0.0;</td></tr>
+<tr><td class="num" id="LN133">133</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN134">134</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN135">135</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN136">136</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN137">137</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_init_channel_map(ebur128_state* st) {</td></tr>
+<tr><td class="num" id="LN138">138</td><td class="line">  size_t i;</td></tr>
+<tr><td class="num" id="LN139">139</td><td class="line">  st-&gt;d-&gt;channel_map = (<span class='keyword'>int</span>*) malloc(st-&gt;channels * <span class='keyword'>sizeof</span>(<span class='keyword'>int</span>));</td></tr>
+<tr><td class="num" id="LN140">140</td><td class="line">  <span class='keyword'>if</span> (!st-&gt;d-&gt;channel_map) <span class='keyword'>return</span> EBUR128_ERROR_NOMEM;</td></tr>
+<tr><td class="num" id="LN141">141</td><td class="line">  <span class='keyword'>if</span> (st-&gt;channels == 4) {</td></tr>
+<tr><td class="num" id="LN142">142</td><td class="line">    st-&gt;d-&gt;channel_map[0] = EBUR128_LEFT;</td></tr>
+<tr><td class="num" id="LN143">143</td><td class="line">    st-&gt;d-&gt;channel_map[1] = EBUR128_RIGHT;</td></tr>
+<tr><td class="num" id="LN144">144</td><td class="line">    st-&gt;d-&gt;channel_map[2] = EBUR128_LEFT_SURROUND;</td></tr>
+<tr><td class="num" id="LN145">145</td><td class="line">    st-&gt;d-&gt;channel_map[3] = EBUR128_RIGHT_SURROUND;</td></tr>
+<tr><td class="num" id="LN146">146</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> (st-&gt;channels == 5) {</td></tr>
+<tr><td class="num" id="LN147">147</td><td class="line">    st-&gt;d-&gt;channel_map[0] = EBUR128_LEFT;</td></tr>
+<tr><td class="num" id="LN148">148</td><td class="line">    st-&gt;d-&gt;channel_map[1] = EBUR128_RIGHT;</td></tr>
+<tr><td class="num" id="LN149">149</td><td class="line">    st-&gt;d-&gt;channel_map[2] = EBUR128_CENTER;</td></tr>
+<tr><td class="num" id="LN150">150</td><td class="line">    st-&gt;d-&gt;channel_map[3] = EBUR128_LEFT_SURROUND;</td></tr>
+<tr><td class="num" id="LN151">151</td><td class="line">    st-&gt;d-&gt;channel_map[4] = EBUR128_RIGHT_SURROUND;</td></tr>
+<tr><td class="num" id="LN152">152</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN153">153</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; st-&gt;channels; ++i) {</td></tr>
+<tr><td class="num" id="LN154">154</td><td class="line">      <span class='keyword'>switch</span> (i) {</td></tr>
+<tr><td class="num" id="LN155">155</td><td class="line">        <span class='keyword'>case</span> 0:  st-&gt;d-&gt;channel_map[i] = EBUR128_LEFT;           <span class='keyword'>break</span>;</td></tr>
+<tr><td class="num" id="LN156">156</td><td class="line">        <span class='keyword'>case</span> 1:  st-&gt;d-&gt;channel_map[i] = EBUR128_RIGHT;          <span class='keyword'>break</span>;</td></tr>
+<tr><td class="num" id="LN157">157</td><td class="line">        <span class='keyword'>case</span> 2:  st-&gt;d-&gt;channel_map[i] = EBUR128_CENTER;         <span class='keyword'>break</span>;</td></tr>
+<tr><td class="num" id="LN158">158</td><td class="line">        <span class='keyword'>case</span> 3:  st-&gt;d-&gt;channel_map[i] = EBUR128_UNUSED;         <span class='keyword'>break</span>;</td></tr>
+<tr><td class="num" id="LN159">159</td><td class="line">        <span class='keyword'>case</span> 4:  st-&gt;d-&gt;channel_map[i] = EBUR128_LEFT_SURROUND;  <span class='keyword'>break</span>;</td></tr>
+<tr><td class="num" id="LN160">160</td><td class="line">        <span class='keyword'>case</span> 5:  st-&gt;d-&gt;channel_map[i] = EBUR128_RIGHT_SURROUND; <span class='keyword'>break</span>;</td></tr>
+<tr><td class="num" id="LN161">161</td><td class="line">        <span class='keyword'>default</span>: st-&gt;d-&gt;channel_map[i] = EBUR128_UNUSED;         <span class='keyword'>break</span>;</td></tr>
+<tr><td class="num" id="LN162">162</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN163">163</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN164">164</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN165">165</td><td class="line">  <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN166">166</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN167">167</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN168">168</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN169">169</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_init_resampler(ebur128_state* st) {</td></tr>
+<tr><td class="num" id="LN170">170</td><td class="line">  <span class='keyword'>int</span> errcode = EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN171">171</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN172">172</td><td class="line">  <span class='keyword'>if</span> (st-&gt;samplerate &lt; 96000) {</td></tr>
+<tr><td class="num" id="LN173">173</td><td class="line">    st-&gt;d-&gt;oversample_factor = 4;</td></tr>
+<tr><td class="num" id="LN174">174</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> (st-&gt;samplerate &lt; 192000) {</td></tr>
+<tr><td class="num" id="LN175">175</td><td class="line">    st-&gt;d-&gt;oversample_factor = 2;</td></tr>
+<tr><td class="num" id="LN176">176</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN177">177</td><td class="line">    st-&gt;d-&gt;oversample_factor = 1;</td></tr>
+<tr><td class="num" id="LN178">178</td><td class="line">    st-&gt;d-&gt;resampler_buffer_input = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN179">179</td><td class="line">    st-&gt;d-&gt;resampler_buffer_output = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN180">180</td><td class="line">    st-&gt;d-&gt;resampler = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN181">181</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN182">182</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN183">183</td><td class="line">  st-&gt;d-&gt;resampler_buffer_input_frames = st-&gt;d-&gt;samples_in_100ms * 4;</td></tr>
+<tr><td class="num" id="LN184">184</td><td class="line">  st-&gt;d-&gt;resampler_buffer_input = malloc(st-&gt;d-&gt;resampler_buffer_input_frames *</td></tr>
+<tr><td class="num" id="LN185">185</td><td class="line">                                      st-&gt;channels *</td></tr>
+<tr><td class="num" id="LN186">186</td><td class="line">                                      <span class='keyword'>sizeof</span>(<span class='keyword'>float</span>));</td></tr>
+<tr><td class="num" id="LN187">187</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;resampler_buffer_input, EBUR128_ERROR_NOMEM, exit)<span class='expansion'>if ((!st-&gt;d-&gt;resampler_buffer_input)) { errcode = (EBUR128_ERROR_NOMEM<br>); goto exit; }</span></span></td></tr>
+<tr><td class="num" id="LN188">188</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN189">189</td><td class="line">  st-&gt;d-&gt;resampler_buffer_output_frames =</td></tr>
+<tr><td class="num" id="LN190">190</td><td class="line">                                    st-&gt;d-&gt;resampler_buffer_input_frames *</td></tr>
+<tr><td class="num" id="LN191">191</td><td class="line">                                    st-&gt;d-&gt;oversample_factor;</td></tr>
+<tr><td class="num" id="LN192">192</td><td class="line">  st-&gt;d-&gt;resampler_buffer_output = malloc</td></tr>
+<tr><td class="num" id="LN193">193</td><td class="line">                                      (st-&gt;d-&gt;resampler_buffer_output_frames *</td></tr>
+<tr><td class="num" id="LN194">194</td><td class="line">                                       st-&gt;channels *</td></tr>
+<tr><td class="num" id="LN195">195</td><td class="line">                                       <span class='keyword'>sizeof</span>(<span class='keyword'>float</span>));</td></tr>
+<tr><td class="num" id="LN196">196</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;resampler_buffer_output, EBUR128_ERROR_NOMEM, free_input)<span class='expansion'>if ((!st-&gt;d-&gt;resampler_buffer_output)) { errcode = (EBUR128_ERROR_NOMEM<br>); goto free_input; }</span></span></td></tr>
+<tr><td class="num" id="LN197">197</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN198">198</td><td class="line">  st-&gt;d-&gt;resampler = speex_resampler_init</td></tr>
+<tr><td class="num" id="LN199">199</td><td class="line">                 ((spx_uint32_t) st-&gt;channels,</td></tr>
+<tr><td class="num" id="LN200">200</td><td class="line">                  (spx_uint32_t) st-&gt;samplerate,</td></tr>
+<tr><td class="num" id="LN201">201</td><td class="line">                  (spx_uint32_t) (st-&gt;samplerate * st-&gt;d-&gt;oversample_factor),</td></tr>
+<tr><td class="num" id="LN202">202</td><td class="line">                  8, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>);</td></tr>
+<tr><td class="num" id="LN203">203</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;resampler, EBUR128_ERROR_NOMEM, free_output)<span class='expansion'>if ((!st-&gt;d-&gt;resampler)) { errcode = (EBUR128_ERROR_NOMEM<br>); goto free_output; }</span></span></td></tr>
+<tr><td class="num" id="LN204">204</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN205">205</td><td class="line">  <span class='keyword'>return</span> errcode;</td></tr>
+<tr><td class="num" id="LN206">206</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN207">207</td><td class="line">free_output:</td></tr>
+<tr><td class="num" id="LN208">208</td><td class="line">  free(st-&gt;d-&gt;resampler_buffer_output);</td></tr>
+<tr><td class="num" id="LN209">209</td><td class="line">  st-&gt;d-&gt;resampler_buffer_output = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN210">210</td><td class="line">free_input:</td></tr>
+<tr><td class="num" id="LN211">211</td><td class="line">  free(st-&gt;d-&gt;resampler_buffer_input);</td></tr>
+<tr><td class="num" id="LN212">212</td><td class="line">  st-&gt;d-&gt;resampler_buffer_input = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN213">213</td><td class="line">exit:</td></tr>
+<tr><td class="num" id="LN214">214</td><td class="line">  <span class='keyword'>return</span> errcode;</td></tr>
+<tr><td class="num" id="LN215">215</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN216">216</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN217">217</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>void</span> ebur128_destroy_resampler(ebur128_state* st) {</td></tr>
+<tr><td class="num" id="LN218">218</td><td class="line">  free(st-&gt;d-&gt;resampler_buffer_input);</td></tr>
+<tr><td class="num" id="LN219">219</td><td class="line">  st-&gt;d-&gt;resampler_buffer_input = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN220">220</td><td class="line">  free(st-&gt;d-&gt;resampler_buffer_output);</td></tr>
+<tr><td class="num" id="LN221">221</td><td class="line">  st-&gt;d-&gt;resampler_buffer_output = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN222">222</td><td class="line">  speex_resampler_destroy(st-&gt;d-&gt;resampler);</td></tr>
+<tr><td class="num" id="LN223">223</td><td class="line">  st-&gt;d-&gt;resampler = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN224">224</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN225">225</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN226">226</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN227">227</td><td class="line"><span class='keyword'>void</span> ebur128_get_version(<span class='keyword'>int</span>* major, <span class='keyword'>int</span>* minor, <span class='keyword'>int</span>* patch) {</td></tr>
+<tr><td class="num" id="LN228">228</td><td class="line">  *major = <span class='macro'>EBUR128_VERSION_MAJOR<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN229">229</td><td class="line">  *minor = <span class='macro'>EBUR128_VERSION_MINOR<span class='expansion'>0</span></span>;</td></tr>
+<tr><td class="num" id="LN230">230</td><td class="line">  *patch = <span class='macro'>EBUR128_VERSION_PATCH<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN231">231</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN232">232</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN233">233</td><td class="line">ebur128_state* ebur128_init(<span class='keyword'>unsigned</span> <span class='keyword'>int</span> channels,</td></tr>
+<tr><td class="num" id="LN234">234</td><td class="line">                            <span class='keyword'>unsigned</span> <span class='keyword'>long</span> samplerate,</td></tr>
+<tr><td class="num" id="LN235">235</td><td class="line">                            <span class='keyword'>int</span> mode) {</td></tr>
+<tr><td class="num" id="LN236">236</td><td class="line">  <span class='keyword'>int</span> errcode;</td></tr>
+<tr><td class="num" id="LN237">237</td><td class="line">  ebur128_state* st;</td></tr>
+<tr><td class="num" id="LN238">238</td><td class="line">  <span class='keyword'>unsigned</span> <span class='keyword'>int</span> i;</td></tr>
+<tr><td class="num" id="LN239">239</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN240">240</td><td class="line">  st = (ebur128_state*) malloc(<span class='keyword'>sizeof</span>(ebur128_state));</td></tr>
+<tr><td class="num" id="LN241">241</td><td class="line">  <span class='macro'>CHECK_ERROR(!st, 0, exit)<span class='expansion'>if ((!st)) { errcode = (0); goto exit; }</span></span></td></tr>
+<tr><td class="num" id="LN242">242</td><td class="line">  st-&gt;d = (<span class='keyword'>struct</span> ebur128_state_internal*)</td></tr>
+<tr><td class="num" id="LN243">243</td><td class="line">          malloc(<span class='keyword'>sizeof</span>(<span class='keyword'>struct</span> ebur128_state_internal));</td></tr>
+<tr><td class="num" id="LN244">244</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d, 0, free_state)<span class='expansion'>if ((!st-&gt;d)) { errcode = (0); goto free_state; }</span></span></td></tr>
+<tr><td class="num" id="LN245">245</td><td class="line">  st-&gt;channels = channels;</td></tr>
+<tr><td class="num" id="LN246">246</td><td class="line">  errcode = ebur128_init_channel_map(st);</td></tr>
+<tr><td class="num" id="LN247">247</td><td class="line">  <span class='macro'>CHECK_ERROR(errcode, 0, free_internal)<span class='expansion'>if ((errcode)) { errcode = (0); goto free_internal; }</span></span></td></tr>
+<tr><td class="num" id="LN248">248</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN249">249</td><td class="line">  st-&gt;d-&gt;sample_peak = (<span class='keyword'>double</span>*) malloc(channels * <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>));</td></tr>
+<tr><td class="num" id="LN250">250</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;sample_peak, 0, free_channel_map)<span class='expansion'>if ((!st-&gt;d-&gt;sample_peak)) { errcode = (0); goto free_channel_map<br>; }</span></span></td></tr>
+<tr><td class="num" id="LN251">251</td><td class="line">  st-&gt;d-&gt;true_peak = (<span class='keyword'>double</span>*) malloc(channels * <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>));</td></tr>
+<tr><td class="num" id="LN252">252</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;true_peak, 0, free_sample_peak)<span class='expansion'>if ((!st-&gt;d-&gt;true_peak)) { errcode = (0); goto free_sample_peak<br>; }</span></span></td></tr>
+<tr><td class="num" id="LN253">253</td><td class="line">  <span class='keyword'>for</span> (i = 0; i &lt; channels; ++i) {</td></tr>
+<tr><td class="num" id="LN254">254</td><td class="line">    st-&gt;d-&gt;sample_peak[i] = 0.0;</td></tr>
+<tr><td class="num" id="LN255">255</td><td class="line">    st-&gt;d-&gt;true_peak[i] = 0.0;</td></tr>
+<tr><td class="num" id="LN256">256</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN257">257</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN258">258</td><td class="line">  st-&gt;d-&gt;use_histogram = mode &amp; EBUR128_MODE_HISTOGRAM ? 1 : 0;</td></tr>
+<tr><td class="num" id="LN259">259</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN260">260</td><td class="line">  st-&gt;samplerate = samplerate;</td></tr>
+<tr><td class="num" id="LN261">261</td><td class="line">  st-&gt;d-&gt;samples_in_100ms = (st-&gt;samplerate + 5) / 10;</td></tr>
+<tr><td class="num" id="LN262">262</td><td class="line">  st-&gt;mode = mode;</td></tr>
+<tr><td class="num" id="LN263">263</td><td class="line">  <span class='keyword'>if</span> ((mode &amp; EBUR128_MODE_S) == EBUR128_MODE_S) {</td></tr>
+<tr><td class="num" id="LN264">264</td><td class="line">    st-&gt;d-&gt;audio_data_frames = st-&gt;d-&gt;samples_in_100ms * 30;</td></tr>
+<tr><td class="num" id="LN265">265</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> ((mode &amp; EBUR128_MODE_M) == EBUR128_MODE_M) {</td></tr>
+<tr><td class="num" id="LN266">266</td><td class="line">    st-&gt;d-&gt;audio_data_frames = st-&gt;d-&gt;samples_in_100ms * 4;</td></tr>
+<tr><td class="num" id="LN267">267</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN268">268</td><td class="line">    <span class='keyword'>goto</span> free_true_peak;</td></tr>
+<tr><td class="num" id="LN269">269</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN270">270</td><td class="line">  st-&gt;d-&gt;audio_data = (<span class='keyword'>double</span>*) malloc(st-&gt;d-&gt;audio_data_frames *</td></tr>
+<tr><td class="num" id="LN271">271</td><td class="line">                                       st-&gt;channels *</td></tr>
+<tr><td class="num" id="LN272">272</td><td class="line">                                       <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>));</td></tr>
+<tr><td class="num" id="LN273">273</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;audio_data, 0, free_true_peak)<span class='expansion'>if ((!st-&gt;d-&gt;audio_data)) { errcode = (0); goto free_true_peak<br>; }</span></span></td></tr>
+<tr><td class="num" id="LN274">274</td><td class="line">  memset(st-&gt;d-&gt;audio_data, 0, st-&gt;d-&gt;audio_data_frames *</td></tr>
+<tr><td class="num" id="LN275">275</td><td class="line">                                       st-&gt;channels *</td></tr>
+<tr><td class="num" id="LN276">276</td><td class="line">                                       <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>));</td></tr>
+<tr><td class="num" id="LN277">277</td><td class="line">  ebur128_init_filter(st);</td></tr>
+<tr><td class="num" id="LN278">278</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN279">279</td><td class="line">  <span class='keyword'>if</span> (st-&gt;d-&gt;use_histogram) {</td></tr>
+<tr><td class="num" id="LN280">280</td><td class="line">    st-&gt;d-&gt;block_energy_histogram = malloc(1000 * <span class='keyword'>sizeof</span>(<span class='keyword'>unsigned</span> <span class='keyword'>long</span>));</td></tr>
+<tr><td class="num" id="LN281">281</td><td class="line">    <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;block_energy_histogram, 0, free_audio_data)<span class='expansion'>if ((!st-&gt;d-&gt;block_energy_histogram)) { errcode = (0); goto<br> free_audio_data; }</span></span></td></tr>
+<tr><td class="num" id="LN282">282</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; 1000; ++i) {</td></tr>
+<tr><td class="num" id="LN283">283</td><td class="line">      st-&gt;d-&gt;block_energy_histogram[i] = 0;</td></tr>
+<tr><td class="num" id="LN284">284</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN285">285</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN286">286</td><td class="line">    st-&gt;d-&gt;block_energy_histogram = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN287">287</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN288">288</td><td class="line">  <span class='keyword'>if</span> (st-&gt;d-&gt;use_histogram) {</td></tr>
+<tr><td class="num" id="LN289">289</td><td class="line">    st-&gt;d-&gt;short_term_block_energy_histogram = malloc(1000 * <span class='keyword'>sizeof</span>(<span class='keyword'>unsigned</span> <span class='keyword'>long</span>));</td></tr>
+<tr><td class="num" id="LN290">290</td><td class="line">    <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;short_term_block_energy_histogram, 0, free_block_energy_histogram)<span class='expansion'>if ((!st-&gt;d-&gt;short_term_block_energy_histogram)) { errcode<br> = (0); goto free_block_energy_histogram; }</span></span></td></tr>
+<tr><td class="num" id="LN291">291</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; 1000; ++i) {</td></tr>
+<tr><td class="num" id="LN292">292</td><td class="line">      st-&gt;d-&gt;short_term_block_energy_histogram[i] = 0;</td></tr>
+<tr><td class="num" id="LN293">293</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN294">294</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN295">295</td><td class="line">    st-&gt;d-&gt;short_term_block_energy_histogram = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN296">296</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN297">297</td><td class="line">  <span class='macro'>SLIST_INIT(&amp;st-&gt;d-&gt;block_list)<span class='expansion'>do { (&amp;st-&gt;d-&gt;block_list)-&gt;slh_first = ((void*)0<br>); } while ( 0)</span></span>;</td></tr>
+<tr><td class="num" id="LN298">298</td><td class="line">  <span class='macro'>SLIST_INIT(&amp;st-&gt;d-&gt;short_term_block_list)<span class='expansion'>do { (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;slh_first =<br> ((void*)0); } while ( 0)</span></span>;</td></tr>
+<tr><td class="num" id="LN299">299</td><td class="line">  st-&gt;d-&gt;short_term_frame_counter = 0;</td></tr>
+<tr><td class="num" id="LN300">300</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN301">301</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN302">302</td><td class="line">  <span class='keyword'>int</span> result = ebur128_init_resampler(st);</td></tr>
+<tr><td class="num" id="LN303">303</td><td class="line">  <span class='macro'>CHECK_ERROR(result, 0, free_short_term_block_energy_histogram)<span class='expansion'>if ((result)) { errcode = (0); goto free_short_term_block_energy_histogram<br>; }</span></span></td></tr>
+<tr><td class="num" id="LN304">304</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN305">305</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN306">306</td><td class="line">  <span class='comment'>/* the first block needs 400ms of audio data */</span></td></tr>
+<tr><td class="num" id="LN307">307</td><td class="line">  st-&gt;d-&gt;needed_frames = st-&gt;d-&gt;samples_in_100ms * 4;</td></tr>
+<tr><td class="num" id="LN308">308</td><td class="line">  <span class='comment'>/* start at the beginning of the buffer */</span></td></tr>
+<tr><td class="num" id="LN309">309</td><td class="line">  st-&gt;d-&gt;audio_data_index = 0;</td></tr>
+<tr><td class="num" id="LN310">310</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN311">311</td><td class="line">  <span class='comment'>/* initialize static constants */</span></td></tr>
+<tr><td class="num" id="LN312">312</td><td class="line">  relative_gate_factor = pow(10.0, relative_gate / 10.0);</td></tr>
+<tr><td class="num" id="LN313">313</td><td class="line">  minus_twenty_decibels = pow(10.0, -20.0 / 10.0);</td></tr>
+<tr><td class="num" id="LN314">314</td><td class="line">  histogram_energy_boundaries[0] = pow(10.0, (-70.0 + 0.691) / 10.0);</td></tr>
+<tr><td class="num" id="LN315">315</td><td class="line">  <span class='keyword'>if</span> (st-&gt;d-&gt;use_histogram) {</td></tr>
+<tr><td class="num" id="LN316">316</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; 1000; ++i) {</td></tr>
+<tr><td class="num" id="LN317">317</td><td class="line">      histogram_energies[i] = pow(10.0, ((<span class='keyword'>double</span>) i / 10.0 - 69.95 + 0.691) / 10.0);</td></tr>
+<tr><td class="num" id="LN318">318</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN319">319</td><td class="line">    <span class='keyword'>for</span> (i = 1; i &lt; 1001; ++i) {</td></tr>
+<tr><td class="num" id="LN320">320</td><td class="line">      histogram_energy_boundaries[i] = pow(10.0, ((<span class='keyword'>double</span>) i / 10.0 - 70.0 + 0.691) / 10.0);</td></tr>
+<tr><td class="num" id="LN321">321</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN322">322</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN323">323</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN324">324</td><td class="line">  <span class='keyword'>return</span> st;</td></tr>
+<tr><td class="num" id="LN325">325</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN326">326</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN327">327</td><td class="line">free_short_term_block_energy_histogram:</td></tr>
+<tr><td class="num" id="LN328">328</td><td class="line">  free(st-&gt;d-&gt;short_term_block_energy_histogram);</td></tr>
+<tr><td class="num" id="LN329">329</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN330">330</td><td class="line">free_block_energy_histogram:</td></tr>
+<tr><td class="num" id="LN331">331</td><td class="line">  free(st-&gt;d-&gt;block_energy_histogram);</td></tr>
+<tr><td class="num" id="LN332">332</td><td class="line">free_audio_data:</td></tr>
+<tr><td class="num" id="LN333">333</td><td class="line">  free(st-&gt;d-&gt;audio_data);</td></tr>
+<tr><td class="num" id="LN334">334</td><td class="line">free_true_peak:</td></tr>
+<tr><td class="num" id="LN335">335</td><td class="line">  free(st-&gt;d-&gt;true_peak);</td></tr>
+<tr><td class="num" id="LN336">336</td><td class="line">free_sample_peak:</td></tr>
+<tr><td class="num" id="LN337">337</td><td class="line">  free(st-&gt;d-&gt;sample_peak);</td></tr>
+<tr><td class="num" id="LN338">338</td><td class="line">free_channel_map:</td></tr>
+<tr><td class="num" id="LN339">339</td><td class="line">  free(st-&gt;d-&gt;channel_map);</td></tr>
+<tr><td class="num" id="LN340">340</td><td class="line">free_internal:</td></tr>
+<tr><td class="num" id="LN341">341</td><td class="line">  free(st-&gt;d);</td></tr>
+<tr><td class="num" id="LN342">342</td><td class="line">free_state:</td></tr>
+<tr><td class="num" id="LN343">343</td><td class="line">  free(st);</td></tr>
+<tr><td class="num" id="LN344">344</td><td class="line">exit:</td></tr>
+<tr><td class="num" id="LN345">345</td><td class="line">  <span class='keyword'>return</span> <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN346">346</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN347">347</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN348">348</td><td class="line"><span class='keyword'>void</span> ebur128_destroy(ebur128_state** st) {</td></tr>
+<tr><td class="num" id="LN349">349</td><td class="line">  <span class='keyword'>struct</span> ebur128_dq_entry* entry;</td></tr>
+<tr><td class="num" id="LN350">350</td><td class="line">  free((*st)-&gt;d-&gt;block_energy_histogram);</td></tr>
+<tr><td class="num" id="LN351">351</td><td class="line">  free((*st)-&gt;d-&gt;short_term_block_energy_histogram);</td></tr>
+<tr><td class="num" id="LN352">352</td><td class="line">  free((*st)-&gt;d-&gt;audio_data);</td></tr>
+<tr><td class="num" id="LN353">353</td><td class="line">  free((*st)-&gt;d-&gt;channel_map);</td></tr>
+<tr><td class="num" id="LN354">354</td><td class="line">  free((*st)-&gt;d-&gt;sample_peak);</td></tr>
+<tr><td class="num" id="LN355">355</td><td class="line">  free((*st)-&gt;d-&gt;true_peak);</td></tr>
+<tr><td class="num" id="LN356">356</td><td class="line">  <span class='keyword'>while</span> (!<span class='macro'>SLIST_EMPTY(&amp;(*st)-&gt;d-&gt;block_list)<span class='expansion'>((&amp;(*st)-&gt;d-&gt;block_list)-&gt;slh_first == ((void*)0<br>))</span></span>) {</td></tr>
+<tr><td class="num" id="LN357">357</td><td class="line">    entry = <span class='macro'>SLIST_FIRST(&amp;(*st)-&gt;d-&gt;block_list)<span class='expansion'>((&amp;(*st)-&gt;d-&gt;block_list)-&gt;slh_first)</span></span>;</td></tr>
+<tr><td class="num" id="LN358">358</td><td class="line">    <span class='macro'>SLIST_REMOVE_HEAD(&amp;(*st)-&gt;d-&gt;block_list, entries)<span class='expansion'>do { (&amp;(*st)-&gt;d-&gt;block_list)-&gt;slh_first = (&amp;<br>(*st)-&gt;d-&gt;block_list)-&gt;slh_first-&gt;entries.sle_next<br>; } while ( 0)</span></span>;</td></tr>
+<tr><td class="num" id="LN359">359</td><td class="line">    free(entry);</td></tr>
+<tr><td class="num" id="LN360">360</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN361">361</td><td class="line">  <span class='keyword'>while</span> (!<span class='macro'>SLIST_EMPTY(&amp;(*st)-&gt;d-&gt;short_term_block_list)<span class='expansion'>((&amp;(*st)-&gt;d-&gt;short_term_block_list)-&gt;slh_first ==<br> ((void*)0))</span></span>) {</td></tr>
+<tr><td class="num" id="LN362">362</td><td class="line">    entry = <span class='macro'>SLIST_FIRST(&amp;(*st)-&gt;d-&gt;short_term_block_list)<span class='expansion'>((&amp;(*st)-&gt;d-&gt;short_term_block_list)-&gt;slh_first)</span></span>;</td></tr>
+<tr><td class="num" id="LN363">363</td><td class="line">    <span class='macro'>SLIST_REMOVE_HEAD(&amp;(*st)-&gt;d-&gt;short_term_block_list, entries)<span class='expansion'>do { (&amp;(*st)-&gt;d-&gt;short_term_block_list)-&gt;slh_first<br> = (&amp;(*st)-&gt;d-&gt;short_term_block_list)-&gt;slh_first<br>-&gt;entries.sle_next; } while ( 0)</span></span>;</td></tr>
+<tr><td class="num" id="LN364">364</td><td class="line">    free(entry);</td></tr>
+<tr><td class="num" id="LN365">365</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN366">366</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN367">367</td><td class="line">  ebur128_destroy_resampler(*st);</td></tr>
+<tr><td class="num" id="LN368">368</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN369">369</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN370">370</td><td class="line">  free((*st)-&gt;d);</td></tr>
+<tr><td class="num" id="LN371">371</td><td class="line">  free(*st);</td></tr>
+<tr><td class="num" id="LN372">372</td><td class="line">  *st = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN373">373</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN374">374</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN375">375</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_use_speex_resampler(ebur128_state* st) {</td></tr>
+<tr><td class="num" id="LN376">376</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN377">377</td><td class="line">  <span class='keyword'>return</span> ((st-&gt;mode &amp; EBUR128_MODE_TRUE_PEAK) == EBUR128_MODE_TRUE_PEAK);</td></tr>
+<tr><td class="num" id="LN378">378</td><td class="line"><span class='directive'>#else</span></td></tr>
+<tr><td class="num" id="LN379">379</td><td class="line">  (<span class='keyword'>void</span>) st;</td></tr>
+<tr><td class="num" id="LN380">380</td><td class="line">  <span class='keyword'>return</span> 0;</td></tr>
+<tr><td class="num" id="LN381">381</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN382">382</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN383">383</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN384">384</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>void</span> ebur128_check_true_peak(ebur128_state* st, size_t frames) {</td></tr>
+<tr><td class="num" id="LN385">385</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN386">386</td><td class="line">  size_t c, i;</td></tr>
+<tr><td class="num" id="LN387">387</td><td class="line">  spx_uint32_t in_len = (spx_uint32_t) frames;</td></tr>
+<tr><td class="num" id="LN388">388</td><td class="line">  spx_uint32_t out_len = (spx_uint32_t) st-&gt;d-&gt;resampler_buffer_output_frames;</td></tr>
+<tr><td class="num" id="LN389">389</td><td class="line">  speex_resampler_process_interleaved_float(</td></tr>
+<tr><td class="num" id="LN390">390</td><td class="line">                      st-&gt;d-&gt;resampler,</td></tr>
+<tr><td class="num" id="LN391">391</td><td class="line">                      st-&gt;d-&gt;resampler_buffer_input,  &amp;in_len,</td></tr>
+<tr><td class="num" id="LN392">392</td><td class="line">                      st-&gt;d-&gt;resampler_buffer_output, &amp;out_len);</td></tr>
+<tr><td class="num" id="LN393">393</td><td class="line">  <span class='keyword'>for</span> (c = 0; c &lt; st-&gt;channels; ++c) {</td></tr>
+<tr><td class="num" id="LN394">394</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; out_len; ++i) {</td></tr>
+<tr><td class="num" id="LN395">395</td><td class="line">      <span class='keyword'>if</span> (st-&gt;d-&gt;resampler_buffer_output[i * st-&gt;channels + c] &gt;</td></tr>
+<tr><td class="num" id="LN396">396</td><td class="line">                                                         st-&gt;d-&gt;true_peak[c]) {</td></tr>
+<tr><td class="num" id="LN397">397</td><td class="line">        st-&gt;d-&gt;true_peak[c] =</td></tr>
+<tr><td class="num" id="LN398">398</td><td class="line">            st-&gt;d-&gt;resampler_buffer_output[i * st-&gt;channels + c];</td></tr>
+<tr><td class="num" id="LN399">399</td><td class="line">      } <span class='keyword'>else</span> <span class='keyword'>if</span> (-st-&gt;d-&gt;resampler_buffer_output[i * st-&gt;channels + c] &gt;</td></tr>
+<tr><td class="num" id="LN400">400</td><td class="line">                                                         st-&gt;d-&gt;true_peak[c]) {</td></tr>
+<tr><td class="num" id="LN401">401</td><td class="line">        st-&gt;d-&gt;true_peak[c] =</td></tr>
+<tr><td class="num" id="LN402">402</td><td class="line">           -st-&gt;d-&gt;resampler_buffer_output[i * st-&gt;channels + c];</td></tr>
+<tr><td class="num" id="LN403">403</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN404">404</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN405">405</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN406">406</td><td class="line"><span class='directive'>#else</span></td></tr>
+<tr><td class="num" id="LN407">407</td><td class="line">  (<span class='keyword'>void</span>) st; (<span class='keyword'>void</span>) frames;</td></tr>
+<tr><td class="num" id="LN408">408</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN409">409</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN410">410</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN411">411</td><td class="line"><span class='directive'>#ifdef <span class='macro'>__SSE2_MATH__<span class='expansion'>1</span></span></span></td></tr>
+<tr><td class="num" id="LN412">412</td><td class="line"><span class='directive'>#include &lt;xmmintrin.h&gt;</span></td></tr>
+<tr><td class="num" id="LN413">413</td><td class="line"><span class='directive'>#define <span class='macro'>TURN_ON_FTZ<span class='expansion'>unsigned int mxcsr = _mm_getcsr(); _mm_setcsr(mxcsr | (0x8000<br>));</span></span> \</span></td></tr>
+<tr><td class="num" id="LN414">414</td><td class="line">        <span class='directive'>unsigned int mxcsr = _mm_getcsr(); \</span></td></tr>
+<tr><td class="num" id="LN415">415</td><td class="line">        <span class='directive'>_mm_setcsr(mxcsr | <span class='macro'>_MM_FLUSH_ZERO_ON<span class='expansion'>(0x8000)</span></span>);</span></td></tr>
+<tr><td class="num" id="LN416">416</td><td class="line"><span class='directive'>#define <span class='macro'>TURN_OFF_FTZ<span class='expansion'>_mm_setcsr(mxcsr);</span></span> _mm_setcsr(mxcsr);</span></td></tr>
+<tr><td class="num" id="LN417">417</td><td class="line"><span class='directive'>#define FLUSH_MANUALLY</span></td></tr>
+<tr><td class="num" id="LN418">418</td><td class="line"><span class='directive'>#else</span></td></tr>
+<tr><td class="num" id="LN419">419</td><td class="line"><span class='directive'>#warning "manual FTZ is being used, please enable SSE2 (-msse2 -mfpmath=sse)"</span></td></tr>
+<tr><td class="num" id="LN420">420</td><td class="line"><span class='directive'>#define <span class='macro'>TURN_ON_FTZ<span class='expansion'>unsigned int mxcsr = _mm_getcsr(); _mm_setcsr(mxcsr | (0x8000<br>));</span></span></span></td></tr>
+<tr><td class="num" id="LN421">421</td><td class="line"><span class='directive'>#define <span class='macro'>TURN_OFF_FTZ<span class='expansion'>_mm_setcsr(mxcsr);</span></span></span></td></tr>
+<tr><td class="num" id="LN422">422</td><td class="line"><span class='directive'>#define FLUSH_MANUALLY \</span></td></tr>
+<tr><td class="num" id="LN423">423</td><td class="line">    <span class='directive'>st-&gt;d-&gt;v[ci][4] = fabs(st-&gt;d-&gt;v[ci][4]) &lt; <span class='macro'>DBL_MIN<span class='expansion'>2.2250738585072014e-308</span></span> ? 0.0 : st-&gt;d-&gt;v[ci][4]; \</span></td></tr>
+<tr><td class="num" id="LN424">424</td><td class="line">    <span class='directive'>st-&gt;d-&gt;v[ci][3] = fabs(st-&gt;d-&gt;v[ci][3]) &lt; <span class='macro'>DBL_MIN<span class='expansion'>2.2250738585072014e-308</span></span> ? 0.0 : st-&gt;d-&gt;v[ci][3]; \</span></td></tr>
+<tr><td class="num" id="LN425">425</td><td class="line">    <span class='directive'>st-&gt;d-&gt;v[ci][2] = fabs(st-&gt;d-&gt;v[ci][2]) &lt; <span class='macro'>DBL_MIN<span class='expansion'>2.2250738585072014e-308</span></span> ? 0.0 : st-&gt;d-&gt;v[ci][2]; \</span></td></tr>
+<tr><td class="num" id="LN426">426</td><td class="line">    <span class='directive'>st-&gt;d-&gt;v[ci][1] = fabs(st-&gt;d-&gt;v[ci][1]) &lt; <span class='macro'>DBL_MIN<span class='expansion'>2.2250738585072014e-308</span></span> ? 0.0 : st-&gt;d-&gt;v[ci][1];</span></td></tr>
+<tr><td class="num" id="LN427">427</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN428">428</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN429">429</td><td class="line"><span class='directive'>#define <span class='macro'>EBUR128_FILTER(type, min_scale, max_scale)<span class='expansion'>static void ebur128_filter_type(ebur128_state* st, const type<br>* src, size_t frames) { static double scaling_factor = -((double<br>) min_scale) &gt; (double) max_scale ? -((double) min_scale) :<br> (double) max_scale; double* audio_data = st-&gt;d-&gt;audio_data<br> + st-&gt;d-&gt;audio_data_index; size_t i, c; unsigned int mxcsr<br> = _mm_getcsr(); _mm_setcsr(mxcsr | (0x8000)); if ((st-&gt;mode<br> &amp; EBUR128_MODE_SAMPLE_PEAK) == EBUR128_MODE_SAMPLE_PEAK)<br> { for (c = 0; c &lt; st-&gt;channels; ++c) { double max = 0.0<br>; for (i = 0; i &lt; frames; ++i) { if (src[i * st-&gt;channels<br> + c] &gt; max) { max = src[i * st-&gt;channels + c]; } else if<br> (-src[i * st-&gt;channels + c] &gt; max) { max = -1.0 * src[<br>i * st-&gt;channels + c]; } } max /= scaling_factor; if (max &gt;<br> st-&gt;d-&gt;sample_peak[c]) st-&gt;d-&gt;sample_peak[c] = max<br>; } } if (ebur128_use_speex_resampler(st)) { for (c = 0; c &lt;<br> st-&gt;channels; ++c) { for (i = 0; i &lt; frames; ++i) { st<br>-&gt;d-&gt;resampler_buffer_input[i * st-&gt;channels + c] = (<br>float) (src[i * st-&gt;channels + c] / scaling_factor); } } ebur128_check_true_peak<br>(st, frames); } for (c = 0; c &lt; st-&gt;channels; ++c) { int<br> ci = st-&gt;d-&gt;channel_map[c] - 1; if (ci &lt; 0) continue<br>; else if (ci &gt; 4) ci = 0; for (i = 0; i &lt; frames; ++i)<br> { st-&gt;d-&gt;v[ci][0] = (double) (src[i * st-&gt;channels +<br> c] / scaling_factor) - st-&gt;d-&gt;a[1] * st-&gt;d-&gt;v[ci<br>][1] - st-&gt;d-&gt;a[2] * st-&gt;d-&gt;v[ci][2] - st-&gt;d-&gt;<br>a[3] * st-&gt;d-&gt;v[ci][3] - st-&gt;d-&gt;a[4] * st-&gt;d-&gt;<br>v[ci][4]; audio_data[i * st-&gt;channels + c] = st-&gt;d-&gt;<br>b[0] * st-&gt;d-&gt;v[ci][0] + st-&gt;d-&gt;b[1] * st-&gt;d-&gt;<br>v[ci][1] + st-&gt;d-&gt;b[2] * st-&gt;d-&gt;v[ci][2] + st-&gt;<br>d-&gt;b[3] * st-&gt;d-&gt;v[ci][3] + st-&gt;d-&gt;b[4] * st-&gt;<br>d-&gt;v[ci][4]; st-&gt;d-&gt;v[ci][4] = st-&gt;d-&gt;v[ci][3]<br>; st-&gt;d-&gt;v[ci][3] = st-&gt;d-&gt;v[ci][2]; st-&gt;d-&gt;<br>v[ci][2] = st-&gt;d-&gt;v[ci][1]; st-&gt;d-&gt;v[ci][1] = st-&gt;<br>d-&gt;v[ci][0]; } } _mm_setcsr(mxcsr); }</span></span>                             \</span></td></tr>
+<tr><td class="num" id="LN430">430</td><td class="line"><span class='directive'>static void ebur128_filter_##type(ebur128_state* st, const type* src,          \</span></td></tr>
+<tr><td class="num" id="LN431">431</td><td class="line">                                  <span class='directive'>size_t frames) {                             \</span></td></tr>
+<tr><td class="num" id="LN432">432</td><td class="line">  <span class='directive'>static double scaling_factor = -((double) min_scale) &gt; (double) max_scale ?  \</span></td></tr>
+<tr><td class="num" id="LN433">433</td><td class="line">                                 <span class='directive'>-((double) min_scale) : (double) max_scale;   \</span></td></tr>
+<tr><td class="num" id="LN434">434</td><td class="line">  <span class='directive'>double* audio_data = st-&gt;d-&gt;audio_data + st-&gt;d-&gt;audio_data_index;            \</span></td></tr>
+<tr><td class="num" id="LN435">435</td><td class="line">  <span class='directive'>size_t i, c;                                                                 \</span></td></tr>
+<tr><td class="num" id="LN436">436</td><td class="line">                                                                               <span class='directive'>\</span></td></tr>
+<tr><td class="num" id="LN437">437</td><td class="line">  <span class='directive'><span class='macro'>TURN_ON_FTZ<span class='expansion'>unsigned int mxcsr = _mm_getcsr(); _mm_setcsr(mxcsr | (0x8000<br>));</span></span>                                                                  \</span></td></tr>
+<tr><td class="num" id="LN438">438</td><td class="line">                                                                               <span class='directive'>\</span></td></tr>
+<tr><td class="num" id="LN439">439</td><td class="line">  <span class='directive'>if ((st-&gt;mode &amp; EBUR128_MODE_SAMPLE_PEAK) == EBUR128_MODE_SAMPLE_PEAK) {     \</span></td></tr>
+<tr><td class="num" id="LN440">440</td><td class="line">    <span class='directive'>for (c = 0; c &lt; st-&gt;channels; ++c) {                                       \</span></td></tr>
+<tr><td class="num" id="LN441">441</td><td class="line">      <span class='directive'>double max = 0.0;                                                        \</span></td></tr>
+<tr><td class="num" id="LN442">442</td><td class="line">      <span class='directive'>for (i = 0; i &lt; frames; ++i) {                                           \</span></td></tr>
+<tr><td class="num" id="LN443">443</td><td class="line">        <span class='directive'>if (src[i * st-&gt;channels + c] &gt; max) {                                 \</span></td></tr>
+<tr><td class="num" id="LN444">444</td><td class="line">          <span class='directive'>max =        src[i * st-&gt;channels + c];                              \</span></td></tr>
+<tr><td class="num" id="LN445">445</td><td class="line">        <span class='directive'>} else if (-src[i * st-&gt;channels + c] &gt; max) {                         \</span></td></tr>
+<tr><td class="num" id="LN446">446</td><td class="line">          <span class='directive'>max = -1.0 * src[i * st-&gt;channels + c];                              \</span></td></tr>
+<tr><td class="num" id="LN447">447</td><td class="line">        <span class='directive'>}                                                                      \</span></td></tr>
+<tr><td class="num" id="LN448">448</td><td class="line">      <span class='directive'>}                                                                        \</span></td></tr>
+<tr><td class="num" id="LN449">449</td><td class="line">      <span class='directive'>max /= scaling_factor;                                                   \</span></td></tr>
+<tr><td class="num" id="LN450">450</td><td class="line">      <span class='directive'>if (max &gt; st-&gt;d-&gt;sample_peak[c]) st-&gt;d-&gt;sample_peak[c] = max;            \</span></td></tr>
+<tr><td class="num" id="LN451">451</td><td class="line">    <span class='directive'>}                                                                          \</span></td></tr>
+<tr><td class="num" id="LN452">452</td><td class="line">  <span class='directive'>}                                                                            \</span></td></tr>
+<tr><td class="num" id="LN453">453</td><td class="line">  <span class='directive'>if (ebur128_use_speex_resampler(st)) {                                       \</span></td></tr>
+<tr><td class="num" id="LN454">454</td><td class="line">    <span class='directive'>for (c = 0; c &lt; st-&gt;channels; ++c) {                                       \</span></td></tr>
+<tr><td class="num" id="LN455">455</td><td class="line">      <span class='directive'>for (i = 0; i &lt; frames; ++i) {                                           \</span></td></tr>
+<tr><td class="num" id="LN456">456</td><td class="line">        <span class='directive'>st-&gt;d-&gt;resampler_buffer_input[i * st-&gt;channels + c] =                  \</span></td></tr>
+<tr><td class="num" id="LN457">457</td><td class="line">                      <span class='directive'>(float) (src[i * st-&gt;channels + c] / scaling_factor);    \</span></td></tr>
+<tr><td class="num" id="LN458">458</td><td class="line">      <span class='directive'>}                                                                        \</span></td></tr>
+<tr><td class="num" id="LN459">459</td><td class="line">    <span class='directive'>}                                                                          \</span></td></tr>
+<tr><td class="num" id="LN460">460</td><td class="line">    <span class='directive'>ebur128_check_true_peak(st, frames);                                       \</span></td></tr>
+<tr><td class="num" id="LN461">461</td><td class="line">  <span class='directive'>}                                                                            \</span></td></tr>
+<tr><td class="num" id="LN462">462</td><td class="line">  <span class='directive'>for (c = 0; c &lt; st-&gt;channels; ++c) {                                         \</span></td></tr>
+<tr><td class="num" id="LN463">463</td><td class="line">    <span class='directive'>int ci = st-&gt;d-&gt;channel_map[c] - 1;                                        \</span></td></tr>
+<tr><td class="num" id="LN464">464</td><td class="line">    <span class='directive'>if (ci &lt; 0) continue;                                                      \</span></td></tr>
+<tr><td class="num" id="LN465">465</td><td class="line">    <span class='directive'>else if (ci &gt; 4) ci = 0; /* dual mono */                                   \</span></td></tr>
+<tr><td class="num" id="LN466">466</td><td class="line">    <span class='directive'>for (i = 0; i &lt; frames; ++i) {                                             \</span></td></tr>
+<tr><td class="num" id="LN467">467</td><td class="line">      <span class='directive'>st-&gt;d-&gt;v[ci][0] = (double) (src[i * st-&gt;channels + c] / scaling_factor)  \</span></td></tr>
+<tr><td class="num" id="LN468">468</td><td class="line">                   <span class='directive'>- st-&gt;d-&gt;a[1] * st-&gt;d-&gt;v[ci][1]                             \</span></td></tr>
+<tr><td class="num" id="LN469">469</td><td class="line">                   <span class='directive'>- st-&gt;d-&gt;a[2] * st-&gt;d-&gt;v[ci][2]                             \</span></td></tr>
+<tr><td class="num" id="LN470">470</td><td class="line">                   <span class='directive'>- st-&gt;d-&gt;a[3] * st-&gt;d-&gt;v[ci][3]                             \</span></td></tr>
+<tr><td class="num" id="LN471">471</td><td class="line">                   <span class='directive'>- st-&gt;d-&gt;a[4] * st-&gt;d-&gt;v[ci][4];                            \</span></td></tr>
+<tr><td class="num" id="LN472">472</td><td class="line">      <span class='directive'>audio_data[i * st-&gt;channels + c] =                                       \</span></td></tr>
+<tr><td class="num" id="LN473">473</td><td class="line">                     <span class='directive'>st-&gt;d-&gt;b[0] * st-&gt;d-&gt;v[ci][0]                             \</span></td></tr>
+<tr><td class="num" id="LN474">474</td><td class="line">                   <span class='directive'>+ st-&gt;d-&gt;b[1] * st-&gt;d-&gt;v[ci][1]                             \</span></td></tr>
+<tr><td class="num" id="LN475">475</td><td class="line">                   <span class='directive'>+ st-&gt;d-&gt;b[2] * st-&gt;d-&gt;v[ci][2]                             \</span></td></tr>
+<tr><td class="num" id="LN476">476</td><td class="line">                   <span class='directive'>+ st-&gt;d-&gt;b[3] * st-&gt;d-&gt;v[ci][3]                             \</span></td></tr>
+<tr><td class="num" id="LN477">477</td><td class="line">                   <span class='directive'>+ st-&gt;d-&gt;b[4] * st-&gt;d-&gt;v[ci][4];                            \</span></td></tr>
+<tr><td class="num" id="LN478">478</td><td class="line">      <span class='directive'>st-&gt;d-&gt;v[ci][4] = st-&gt;d-&gt;v[ci][3];                                       \</span></td></tr>
+<tr><td class="num" id="LN479">479</td><td class="line">      <span class='directive'>st-&gt;d-&gt;v[ci][3] = st-&gt;d-&gt;v[ci][2];                                       \</span></td></tr>
+<tr><td class="num" id="LN480">480</td><td class="line">      <span class='directive'>st-&gt;d-&gt;v[ci][2] = st-&gt;d-&gt;v[ci][1];                                       \</span></td></tr>
+<tr><td class="num" id="LN481">481</td><td class="line">      <span class='directive'>st-&gt;d-&gt;v[ci][1] = st-&gt;d-&gt;v[ci][0];                                       \</span></td></tr>
+<tr><td class="num" id="LN482">482</td><td class="line">    <span class='directive'>}                                                                          \</span></td></tr>
+<tr><td class="num" id="LN483">483</td><td class="line">    <span class='directive'>FLUSH_MANUALLY                                                             \</span></td></tr>
+<tr><td class="num" id="LN484">484</td><td class="line">  <span class='directive'>}                                                                            \</span></td></tr>
+<tr><td class="num" id="LN485">485</td><td class="line">  <span class='directive'><span class='macro'>TURN_OFF_FTZ<span class='expansion'>_mm_setcsr(mxcsr);</span></span>                                                                 \</span></td></tr>
+<tr><td class="num" id="LN486">486</td><td class="line"><span class='directive'>}</span></td></tr>
+<tr><td class="num" id="LN487">487</td><td class="line"><span class='macro'>EBUR128_FILTER(<span class='keyword'>short</span>, SHRT_MIN, SHRT_MAX)<span class='expansion'>static void ebur128_filter_short(ebur128_state* st, const short<br>* src, size_t frames) { static double scaling_factor = -((double<br>) (-32767 -1)) &gt; (double) 32767 ? -((double) (-32767 -1)) :<br> (double) 32767; double* audio_data = st-&gt;d-&gt;audio_data<br> + st-&gt;d-&gt;audio_data_index; size_t i, c; unsigned int mxcsr<br> = _mm_getcsr(); _mm_setcsr(mxcsr | (0x8000)); if ((st-&gt;mode<br> &amp; EBUR128_MODE_SAMPLE_PEAK) == EBUR128_MODE_SAMPLE_PEAK)<br> { for (c = 0; c &lt; st-&gt;channels; ++c) { double max = 0.0<br>; for (i = 0; i &lt; frames; ++i) { if (src[i * st-&gt;channels<br> + c] &gt; max) { max = src[i * st-&gt;channels + c]; } else if<br> (-src[i * st-&gt;channels + c] &gt; max) { max = -1.0 * src[<br>i * st-&gt;channels + c]; } } max /= scaling_factor; if (max &gt;<br> st-&gt;d-&gt;sample_peak[c]) st-&gt;d-&gt;sample_peak[c] = max<br>; } } if (ebur128_use_speex_resampler(st)) { for (c = 0; c &lt;<br> st-&gt;channels; ++c) { for (i = 0; i &lt; frames; ++i) { st<br>-&gt;d-&gt;resampler_buffer_input[i * st-&gt;channels + c] = (<br>float) (src[i * st-&gt;channels + c] / scaling_factor); } } ebur128_check_true_peak<br>(st, frames); } for (c = 0; c &lt; st-&gt;channels; ++c) { int<br> ci = st-&gt;d-&gt;channel_map[c] - 1; if (ci &lt; 0) continue<br>; else if (ci &gt; 4) ci = 0; for (i = 0; i &lt; frames; ++i)<br> { st-&gt;d-&gt;v[ci][0] = (double) (src[i * st-&gt;channels +<br> c] / scaling_factor) - st-&gt;d-&gt;a[1] * st-&gt;d-&gt;v[ci<br>][1] - st-&gt;d-&gt;a[2] * st-&gt;d-&gt;v[ci][2] - st-&gt;d-&gt;<br>a[3] * st-&gt;d-&gt;v[ci][3] - st-&gt;d-&gt;a[4] * st-&gt;d-&gt;<br>v[ci][4]; audio_data[i * st-&gt;channels + c] = st-&gt;d-&gt;<br>b[0] * st-&gt;d-&gt;v[ci][0] + st-&gt;d-&gt;b[1] * st-&gt;d-&gt;<br>v[ci][1] + st-&gt;d-&gt;b[2] * st-&gt;d-&gt;v[ci][2] + st-&gt;<br>d-&gt;b[3] * st-&gt;d-&gt;v[ci][3] + st-&gt;d-&gt;b[4] * st-&gt;<br>d-&gt;v[ci][4]; st-&gt;d-&gt;v[ci][4] = st-&gt;d-&gt;v[ci][3]<br>; st-&gt;d-&gt;v[ci][3] = st-&gt;d-&gt;v[ci][2]; st-&gt;d-&gt;<br>v[ci][2] = st-&gt;d-&gt;v[ci][1]; st-&gt;d-&gt;v[ci][1] = st-&gt;<br>d-&gt;v[ci][0]; } } _mm_setcsr(mxcsr); }</span></span></td></tr>
+<tr><td class="num" id="LN488">488</td><td class="line"><span class='macro'>EBUR128_FILTER(<span class='keyword'>int</span>, INT_MIN, INT_MAX)<span class='expansion'>static void ebur128_filter_int(ebur128_state* st, const int* src<br>, size_t frames) { static double scaling_factor = -((double) (<br>-2147483647 -1)) &gt; (double) 2147483647 ? -((double) (-2147483647<br> -1)) : (double) 2147483647; double* audio_data = st-&gt;d-&gt;<br>audio_data + st-&gt;d-&gt;audio_data_index; size_t i, c; unsigned<br> int mxcsr = _mm_getcsr(); _mm_setcsr(mxcsr | (0x8000)); if (<br>(st-&gt;mode &amp; EBUR128_MODE_SAMPLE_PEAK) == EBUR128_MODE_SAMPLE_PEAK<br>) { for (c = 0; c &lt; st-&gt;channels; ++c) { double max = 0.0<br>; for (i = 0; i &lt; frames; ++i) { if (src[i * st-&gt;channels<br> + c] &gt; max) { max = src[i * st-&gt;channels + c]; } else if<br> (-src[i * st-&gt;channels + c] &gt; max) { max = -1.0 * src[<br>i * st-&gt;channels + c]; } } max /= scaling_factor; if (max &gt;<br> st-&gt;d-&gt;sample_peak[c]) st-&gt;d-&gt;sample_peak[c] = max<br>; } } if (ebur128_use_speex_resampler(st)) { for (c = 0; c &lt;<br> st-&gt;channels; ++c) { for (i = 0; i &lt; frames; ++i) { st<br>-&gt;d-&gt;resampler_buffer_input[i * st-&gt;channels + c] = (<br>float) (src[i * st-&gt;channels + c] / scaling_factor); } } ebur128_check_true_peak<br>(st, frames); } for (c = 0; c &lt; st-&gt;channels; ++c) { int<br> ci = st-&gt;d-&gt;channel_map[c] - 1; if (ci &lt; 0) continue<br>; else if (ci &gt; 4) ci = 0; for (i = 0; i &lt; frames; ++i)<br> { st-&gt;d-&gt;v[ci][0] = (double) (src[i * st-&gt;channels +<br> c] / scaling_factor) - st-&gt;d-&gt;a[1] * st-&gt;d-&gt;v[ci<br>][1] - st-&gt;d-&gt;a[2] * st-&gt;d-&gt;v[ci][2] - st-&gt;d-&gt;<br>a[3] * st-&gt;d-&gt;v[ci][3] - st-&gt;d-&gt;a[4] * st-&gt;d-&gt;<br>v[ci][4]; audio_data[i * st-&gt;channels + c] = st-&gt;d-&gt;<br>b[0] * st-&gt;d-&gt;v[ci][0] + st-&gt;d-&gt;b[1] * st-&gt;d-&gt;<br>v[ci][1] + st-&gt;d-&gt;b[2] * st-&gt;d-&gt;v[ci][2] + st-&gt;<br>d-&gt;b[3] * st-&gt;d-&gt;v[ci][3] + st-&gt;d-&gt;b[4] * st-&gt;<br>d-&gt;v[ci][4]; st-&gt;d-&gt;v[ci][4] = st-&gt;d-&gt;v[ci][3]<br>; st-&gt;d-&gt;v[ci][3] = st-&gt;d-&gt;v[ci][2]; st-&gt;d-&gt;<br>v[ci][2] = st-&gt;d-&gt;v[ci][1]; st-&gt;d-&gt;v[ci][1] = st-&gt;<br>d-&gt;v[ci][0]; } } _mm_setcsr(mxcsr); }</span></span></td></tr>
+<tr><td class="num" id="LN489">489</td><td class="line"><span class='macro'>EBUR128_FILTER(<span class='keyword'>float</span>, -1.0f, 1.0f)<span class='expansion'>static void ebur128_filter_float(ebur128_state* st, const float<br>* src, size_t frames) { static double scaling_factor = -((double<br>) -1.0f) &gt; (double) 1.0f ? -((double) -1.0f) : (double) 1.0f<br>; double* audio_data = st-&gt;d-&gt;audio_data + st-&gt;d-&gt;<br>audio_data_index; size_t i, c; unsigned int mxcsr = _mm_getcsr<br>(); _mm_setcsr(mxcsr | (0x8000)); if ((st-&gt;mode &amp; EBUR128_MODE_SAMPLE_PEAK<br>) == EBUR128_MODE_SAMPLE_PEAK) { for (c = 0; c &lt; st-&gt;channels<br>; ++c) { double max = 0.0; for (i = 0; i &lt; frames; ++i) { if<br> (src[i * st-&gt;channels + c] &gt; max) { max = src[i * st-&gt;<br>channels + c]; } else if (-src[i * st-&gt;channels + c] &gt; max<br>) { max = -1.0 * src[i * st-&gt;channels + c]; } } max /= scaling_factor<br>; if (max &gt; st-&gt;d-&gt;sample_peak[c]) st-&gt;d-&gt;sample_peak<br>[c] = max; } } if (ebur128_use_speex_resampler(st)) { for (c =<br> 0; c &lt; st-&gt;channels; ++c) { for (i = 0; i &lt; frames;<br> ++i) { st-&gt;d-&gt;resampler_buffer_input[i * st-&gt;channels<br> + c] = (float) (src[i * st-&gt;channels + c] / scaling_factor<br>); } } ebur128_check_true_peak(st, frames); } for (c = 0; c &lt;<br> st-&gt;channels; ++c) { int ci = st-&gt;d-&gt;channel_map[c]<br> - 1; if (ci &lt; 0) continue; else if (ci &gt; 4) ci = 0; for<br> (i = 0; i &lt; frames; ++i) { st-&gt;d-&gt;v[ci][0] = (double<br>) (src[i * st-&gt;channels + c] / scaling_factor) - st-&gt;d-&gt;<br>a[1] * st-&gt;d-&gt;v[ci][1] - st-&gt;d-&gt;a[2] * st-&gt;d-&gt;<br>v[ci][2] - st-&gt;d-&gt;a[3] * st-&gt;d-&gt;v[ci][3] - st-&gt;<br>d-&gt;a[4] * st-&gt;d-&gt;v[ci][4]; audio_data[i * st-&gt;channels<br> + c] = st-&gt;d-&gt;b[0] * st-&gt;d-&gt;v[ci][0] + st-&gt;d-&gt;<br>b[1] * st-&gt;d-&gt;v[ci][1] + st-&gt;d-&gt;b[2] * st-&gt;d-&gt;<br>v[ci][2] + st-&gt;d-&gt;b[3] * st-&gt;d-&gt;v[ci][3] + st-&gt;<br>d-&gt;b[4] * st-&gt;d-&gt;v[ci][4]; st-&gt;d-&gt;v[ci][4] = st<br>-&gt;d-&gt;v[ci][3]; st-&gt;d-&gt;v[ci][3] = st-&gt;d-&gt;v[ci<br>][2]; st-&gt;d-&gt;v[ci][2] = st-&gt;d-&gt;v[ci][1]; st-&gt;d<br>-&gt;v[ci][1] = st-&gt;d-&gt;v[ci][0]; } } _mm_setcsr(mxcsr);<br> }</span></span></td></tr>
+<tr><td class="num" id="LN490">490</td><td class="line"><span class='macro'>EBUR128_FILTER(<span class='keyword'>double</span>, -1.0, 1.0)<span class='expansion'>static void ebur128_filter_double(ebur128_state* st, const double<br>* src, size_t frames) { static double scaling_factor = -((double<br>) -1.0) &gt; (double) 1.0 ? -((double) -1.0) : (double) 1.0; double<br>* audio_data = st-&gt;d-&gt;audio_data + st-&gt;d-&gt;audio_data_index<br>; size_t i, c; unsigned int mxcsr = _mm_getcsr(); _mm_setcsr(<br>mxcsr | (0x8000)); if ((st-&gt;mode &amp; EBUR128_MODE_SAMPLE_PEAK<br>) == EBUR128_MODE_SAMPLE_PEAK) { for (c = 0; c &lt; st-&gt;channels<br>; ++c) { double max = 0.0; for (i = 0; i &lt; frames; ++i) { if<br> (src[i * st-&gt;channels + c] &gt; max) { max = src[i * st-&gt;<br>channels + c]; } else if (-src[i * st-&gt;channels + c] &gt; max<br>) { max = -1.0 * src[i * st-&gt;channels + c]; } } max /= scaling_factor<br>; if (max &gt; st-&gt;d-&gt;sample_peak[c]) st-&gt;d-&gt;sample_peak<br>[c] = max; } } if (ebur128_use_speex_resampler(st)) { for (c =<br> 0; c &lt; st-&gt;channels; ++c) { for (i = 0; i &lt; frames;<br> ++i) { st-&gt;d-&gt;resampler_buffer_input[i * st-&gt;channels<br> + c] = (float) (src[i * st-&gt;channels + c] / scaling_factor<br>); } } ebur128_check_true_peak(st, frames); } for (c = 0; c &lt;<br> st-&gt;channels; ++c) { int ci = st-&gt;d-&gt;channel_map[c]<br> - 1; if (ci &lt; 0) continue; else if (ci &gt; 4) ci = 0; for<br> (i = 0; i &lt; frames; ++i) { st-&gt;d-&gt;v[ci][0] = (double<br>) (src[i * st-&gt;channels + c] / scaling_factor) - st-&gt;d-&gt;<br>a[1] * st-&gt;d-&gt;v[ci][1] - st-&gt;d-&gt;a[2] * st-&gt;d-&gt;<br>v[ci][2] - st-&gt;d-&gt;a[3] * st-&gt;d-&gt;v[ci][3] - st-&gt;<br>d-&gt;a[4] * st-&gt;d-&gt;v[ci][4]; audio_data[i * st-&gt;channels<br> + c] = st-&gt;d-&gt;b[0] * st-&gt;d-&gt;v[ci][0] + st-&gt;d-&gt;<br>b[1] * st-&gt;d-&gt;v[ci][1] + st-&gt;d-&gt;b[2] * st-&gt;d-&gt;<br>v[ci][2] + st-&gt;d-&gt;b[3] * st-&gt;d-&gt;v[ci][3] + st-&gt;<br>d-&gt;b[4] * st-&gt;d-&gt;v[ci][4]; st-&gt;d-&gt;v[ci][4] = st<br>-&gt;d-&gt;v[ci][3]; st-&gt;d-&gt;v[ci][3] = st-&gt;d-&gt;v[ci<br>][2]; st-&gt;d-&gt;v[ci][2] = st-&gt;d-&gt;v[ci][1]; st-&gt;d<br>-&gt;v[ci][1] = st-&gt;d-&gt;v[ci][0]; } } _mm_setcsr(mxcsr);<br> }</span></span></td></tr>
+<tr><td class="num" id="LN491">491</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN492">492</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>double</span> ebur128_energy_to_loudness(<span class='keyword'>double</span> energy) {</td></tr>
+<tr><td class="num" id="LN493">493</td><td class="line">  <span class='keyword'>return</span> 10 * (log(energy) / log(10.0)) - 0.691;</td></tr>
+<tr><td class="num" id="LN494">494</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN495">495</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN496">496</td><td class="line"><span class='keyword'>static</span> size_t find_histogram_index(<span class='keyword'>double</span> energy) {</td></tr>
+<tr><td class="num" id="LN497">497</td><td class="line">  size_t index_min = 0;</td></tr>
+<tr><td class="num" id="LN498">498</td><td class="line">  size_t index_max = 1000;</td></tr>
+<tr><td class="num" id="LN499">499</td><td class="line">  size_t index_mid;</td></tr>
+<tr><td class="num" id="LN500">500</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN501">501</td><td class="line">  <span class='keyword'>do</span> {</td></tr>
+<tr><td class="num" id="LN502">502</td><td class="line">    index_mid = (index_min + index_max) / 2;</td></tr>
+<tr><td class="num" id="LN503">503</td><td class="line">    <span class='keyword'>if</span> (energy &gt;= histogram_energy_boundaries[index_mid]) {</td></tr>
+<tr><td class="num" id="LN504">504</td><td class="line">      index_min = index_mid;</td></tr>
+<tr><td class="num" id="LN505">505</td><td class="line">    } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN506">506</td><td class="line">      index_max = index_mid;</td></tr>
+<tr><td class="num" id="LN507">507</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN508">508</td><td class="line">  } <span class='keyword'>while</span> (index_max - index_min != 1);</td></tr>
+<tr><td class="num" id="LN509">509</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN510">510</td><td class="line">  <span class='keyword'>return</span> index_min;</td></tr>
+<tr><td class="num" id="LN511">511</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN512">512</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN513">513</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_calc_gating_block(ebur128_state* st, size_t frames_per_block,</td></tr>
+<tr><td class="num" id="LN514">514</td><td class="line">                                     <span class='keyword'>double</span>* optional_output) {</td></tr>
+<tr><td class="num" id="LN515">515</td><td class="line">  size_t i, c;</td></tr>
+<tr><td class="num" id="LN516">516</td><td class="line">  <span class='keyword'>double</span> sum = 0.0;</td></tr>
+<tr><td class="num" id="LN517">517</td><td class="line">  <span class='keyword'>double</span> channel_sum;</td></tr>
+<tr><td class="num" id="LN518">518</td><td class="line">  <span class='keyword'>for</span> (c = 0; c &lt; st-&gt;channels; ++c) {</td></tr>
+<tr><td class="num" id="LN519">519</td><td class="line">    <span class='keyword'>if</span> (st-&gt;d-&gt;channel_map[c] == EBUR128_UNUSED) <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN520">520</td><td class="line">    channel_sum = 0.0;</td></tr>
+<tr><td class="num" id="LN521">521</td><td class="line">    <span class='keyword'>if</span> (st-&gt;d-&gt;audio_data_index &lt; frames_per_block * st-&gt;channels) {</td></tr>
+<tr><td class="num" id="LN522">522</td><td class="line">      <span class='keyword'>for</span> (i = 0; i &lt; st-&gt;d-&gt;audio_data_index / st-&gt;channels; ++i) {</td></tr>
+<tr><td class="num" id="LN523">523</td><td class="line">        channel_sum += st-&gt;d-&gt;audio_data[i * st-&gt;channels + c] *</td></tr>
+<tr><td class="num" id="LN524">524</td><td class="line">                       st-&gt;d-&gt;audio_data[i * st-&gt;channels + c];</td></tr>
+<tr><td class="num" id="LN525">525</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN526">526</td><td class="line">      <span class='keyword'>for</span> (i = st-&gt;d-&gt;audio_data_frames -</td></tr>
+<tr><td class="num" id="LN527">527</td><td class="line">              (frames_per_block -</td></tr>
+<tr><td class="num" id="LN528">528</td><td class="line">               st-&gt;d-&gt;audio_data_index / st-&gt;channels);</td></tr>
+<tr><td class="num" id="LN529">529</td><td class="line">           i &lt; st-&gt;d-&gt;audio_data_frames; ++i) {</td></tr>
+<tr><td class="num" id="LN530">530</td><td class="line">        channel_sum += st-&gt;d-&gt;audio_data[i * st-&gt;channels + c] *</td></tr>
+<tr><td class="num" id="LN531">531</td><td class="line">                       st-&gt;d-&gt;audio_data[i * st-&gt;channels + c];</td></tr>
+<tr><td class="num" id="LN532">532</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN533">533</td><td class="line">    } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN534">534</td><td class="line">      <span class='keyword'>for</span> (i = st-&gt;d-&gt;audio_data_index / st-&gt;channels - frames_per_block;</td></tr>
+<tr><td class="num" id="LN535">535</td><td class="line">           i &lt; st-&gt;d-&gt;audio_data_index / st-&gt;channels;</td></tr>
+<tr><td class="num" id="LN536">536</td><td class="line">           ++i) {</td></tr>
+<tr><td class="num" id="LN537">537</td><td class="line">        channel_sum += st-&gt;d-&gt;audio_data[i * st-&gt;channels + c] *</td></tr>
+<tr><td class="num" id="LN538">538</td><td class="line">                       st-&gt;d-&gt;audio_data[i * st-&gt;channels + c];</td></tr>
+<tr><td class="num" id="LN539">539</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN540">540</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN541">541</td><td class="line">    <span class='keyword'>if</span> (st-&gt;d-&gt;channel_map[c] == EBUR128_LEFT_SURROUND ||</td></tr>
+<tr><td class="num" id="LN542">542</td><td class="line">        st-&gt;d-&gt;channel_map[c] == EBUR128_RIGHT_SURROUND) {</td></tr>
+<tr><td class="num" id="LN543">543</td><td class="line">      channel_sum *= 1.41;</td></tr>
+<tr><td class="num" id="LN544">544</td><td class="line">    } <span class='keyword'>else</span> <span class='keyword'>if</span> (st-&gt;d-&gt;channel_map[c] == EBUR128_DUAL_MONO) {</td></tr>
+<tr><td class="num" id="LN545">545</td><td class="line">      channel_sum *= 2.0;</td></tr>
+<tr><td class="num" id="LN546">546</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN547">547</td><td class="line">    sum += channel_sum;</td></tr>
+<tr><td class="num" id="LN548">548</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN549">549</td><td class="line">  sum /= (<span class='keyword'>double</span>) frames_per_block;</td></tr>
+<tr><td class="num" id="LN550">550</td><td class="line">  <span class='keyword'>if</span> (optional_output) {</td></tr>
+<tr><td class="num" id="LN551">551</td><td class="line">    *optional_output = sum;</td></tr>
+<tr><td class="num" id="LN552">552</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN553">553</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> (sum &gt;= histogram_energy_boundaries[0]) {</td></tr>
+<tr><td class="num" id="LN554">554</td><td class="line">    <span class='keyword'>if</span> (st-&gt;d-&gt;use_histogram) {</td></tr>
+<tr><td class="num" id="LN555">555</td><td class="line">      ++st-&gt;d-&gt;block_energy_histogram[find_histogram_index(sum)];</td></tr>
+<tr><td class="num" id="LN556">556</td><td class="line">    } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN557">557</td><td class="line">      <span class='keyword'>struct</span> ebur128_dq_entry* block;</td></tr>
+<tr><td class="num" id="LN558">558</td><td class="line">      block = (<span class='keyword'>struct</span> ebur128_dq_entry*) malloc(<span class='keyword'>sizeof</span>(<span class='keyword'>struct</span> ebur128_dq_entry));</td></tr>
+<tr><td class="num" id="LN559">559</td><td class="line">      <span class='keyword'>if</span> (!block) <span class='keyword'>return</span> EBUR128_ERROR_NOMEM;</td></tr>
+<tr><td class="num" id="LN560">560</td><td class="line">      block-&gt;z = sum;</td></tr>
+<tr><td class="num" id="LN561">561</td><td class="line">      <span class='macro'>SLIST_INSERT_HEAD(&amp;st-&gt;d-&gt;block_list, block, entries)<span class='expansion'>do { (block)-&gt;entries.sle_next = (&amp;st-&gt;d-&gt;block_list<br>)-&gt;slh_first; (&amp;st-&gt;d-&gt;block_list)-&gt;slh_first<br> = (block); } while ( 0)</span></span>;</td></tr>
+<tr><td class="num" id="LN562">562</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN563">563</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN564">564</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN565">565</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN566">566</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN567">567</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN568">568</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN569">569</td><td class="line"><span class='keyword'>int</span> ebur128_set_channel(ebur128_state* st,</td></tr>
+<tr><td class="num" id="LN570">570</td><td class="line">                        <span class='keyword'>unsigned</span> <span class='keyword'>int</span> channel_number,</td></tr>
+<tr><td class="num" id="LN571">571</td><td class="line">                        <span class='keyword'>int</span> value) {</td></tr>
+<tr><td class="num" id="LN572">572</td><td class="line">  <span class='keyword'>if</span> (channel_number &gt;= st-&gt;channels) {</td></tr>
+<tr><td class="num" id="LN573">573</td><td class="line">    <span class='keyword'>return</span> 1;</td></tr>
+<tr><td class="num" id="LN574">574</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN575">575</td><td class="line">  <span class='keyword'>if</span> (value == EBUR128_DUAL_MONO &amp;&amp;</td></tr>
+<tr><td class="num" id="LN576">576</td><td class="line">      (st-&gt;channels != 1 || channel_number != 0)) {</td></tr>
+<tr><td class="num" id="LN577">577</td><td class="line">    fprintf(<span class='macro'>stderr<span class='expansion'>stderr</span></span>, <span class='string_literal'>"EBUR128_DUAL_MONO only works with mono files!\n"</span>);</td></tr>
+<tr><td class="num" id="LN578">578</td><td class="line">    <span class='keyword'>return</span> 1;</td></tr>
+<tr><td class="num" id="LN579">579</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN580">580</td><td class="line">  st-&gt;d-&gt;channel_map[channel_number] = value;</td></tr>
+<tr><td class="num" id="LN581">581</td><td class="line">  <span class='keyword'>return</span> 0;</td></tr>
+<tr><td class="num" id="LN582">582</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN583">583</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN584">584</td><td class="line"><span class='keyword'>int</span> ebur128_change_parameters(ebur128_state* st,</td></tr>
+<tr><td class="num" id="LN585">585</td><td class="line">                              <span class='keyword'>unsigned</span> <span class='keyword'>int</span> channels,</td></tr>
+<tr><td class="num" id="LN586">586</td><td class="line">                              <span class='keyword'>unsigned</span> <span class='keyword'>long</span> samplerate) {</td></tr>
+<tr><td class="num" id="LN587">587</td><td class="line">  <span class='keyword'>int</span> errcode;</td></tr>
+<tr><td class="num" id="LN588">588</td><td class="line">  <span class='keyword'>if</span> (channels == st-&gt;channels &amp;&amp;</td></tr>
+<tr><td class="num" id="LN589">589</td><td class="line">      samplerate == st-&gt;samplerate) {</td></tr>
+<tr><td class="num" id="LN590">590</td><td class="line">    <span class='keyword'>return</span> 2;</td></tr>
+<tr><td class="num" id="LN591">591</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN592">592</td><td class="line">  free(st-&gt;d-&gt;audio_data);</td></tr>
+<tr><td class="num" id="LN593">593</td><td class="line">  st-&gt;d-&gt;audio_data = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN594">594</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN595">595</td><td class="line">  <span class='keyword'>if</span> (channels != st-&gt;channels) {</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path1" class="msg msgControl" style="margin-left:3ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">1</div></td><td>Taking true branch</td><td><div class="PathNav"><a href="#EndPath" title="Next event (2)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN596">596</td><td class="line">    <span class='keyword'>unsigned</span> <span class='keyword'>int</span> i;</td></tr>
+<tr><td class="num" id="LN597">597</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN598">598</td><td class="line">    free(st-&gt;d-&gt;channel_map); st-&gt;d-&gt;channel_map = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN599">599</td><td class="line">    free(st-&gt;d-&gt;sample_peak); st-&gt;d-&gt;sample_peak = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN600">600</td><td class="line">    free(st-&gt;d-&gt;true_peak);   st-&gt;d-&gt;true_peak = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN601">601</td><td class="line">    st-&gt;channels = channels;</td></tr>
+<tr><td class="num" id="LN602">602</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN603">603</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN604">604</td><td class="line">    ebur128_destroy_resampler(st);</td></tr>
+<tr><td class="num" id="LN605">605</td><td class="line">    ebur128_init_resampler(st);</td></tr>
+<tr><td class="num" id="LN606">606</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN607">607</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN608">608</td><td class="line">    errcode = ebur128_init_channel_map(st);</td></tr>
+<tr><td class="num" id="LN609">609</td><td class="line">    <span class='macro'>CHECK_ERROR(errcode, EBUR128_ERROR_NOMEM, exit)<span class='expansion'>if ((errcode)) { errcode = (EBUR128_ERROR_NOMEM); goto exit; }</span></span></td></tr>
+<tr><td class="num" id="LN610">610</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN611">611</td><td class="line">    st-&gt;d-&gt;sample_peak = (<span class='keyword'>double</span>*) malloc(<span class="mrange">channels * <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>)</span>);</td></tr>
+<tr><td class="num"></td><td class="line"><div id="EndPath" class="msg msgEvent" style="margin-left:36ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">2</div></td><td><div class="PathNav"><a href="#Path1" title="Previous event (1)">&#x2190;</a></div></td></td><td>Call to 'malloc' has an allocation size of 0 bytes</td></tr></table></div></td></tr>
+<tr><td class="num" id="LN612">612</td><td class="line">    <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;sample_peak, EBUR128_ERROR_NOMEM, exit)<span class='expansion'>if ((!st-&gt;d-&gt;sample_peak)) { errcode = (EBUR128_ERROR_NOMEM<br>); goto exit; }</span></span></td></tr>
+<tr><td class="num" id="LN613">613</td><td class="line">    st-&gt;d-&gt;true_peak = (<span class='keyword'>double</span>*) malloc(channels * <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>));</td></tr>
+<tr><td class="num" id="LN614">614</td><td class="line">    <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;true_peak, EBUR128_ERROR_NOMEM, exit)<span class='expansion'>if ((!st-&gt;d-&gt;true_peak)) { errcode = (EBUR128_ERROR_NOMEM<br>); goto exit; }</span></span></td></tr>
+<tr><td class="num" id="LN615">615</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; channels; ++i) {</td></tr>
+<tr><td class="num" id="LN616">616</td><td class="line">      st-&gt;d-&gt;sample_peak[i] = 0.0;</td></tr>
+<tr><td class="num" id="LN617">617</td><td class="line">      st-&gt;d-&gt;true_peak[i] = 0.0;</td></tr>
+<tr><td class="num" id="LN618">618</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN619">619</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN620">620</td><td class="line">  <span class='keyword'>if</span> (samplerate != st-&gt;samplerate) {</td></tr>
+<tr><td class="num" id="LN621">621</td><td class="line">    st-&gt;samplerate = samplerate;</td></tr>
+<tr><td class="num" id="LN622">622</td><td class="line">    ebur128_init_filter(st);</td></tr>
+<tr><td class="num" id="LN623">623</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN624">624</td><td class="line">  <span class='keyword'>if</span> ((st-&gt;mode &amp; EBUR128_MODE_S) == EBUR128_MODE_S) {</td></tr>
+<tr><td class="num" id="LN625">625</td><td class="line">    st-&gt;d-&gt;audio_data_frames = st-&gt;d-&gt;samples_in_100ms * 30;</td></tr>
+<tr><td class="num" id="LN626">626</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> ((st-&gt;mode &amp; EBUR128_MODE_M) == EBUR128_MODE_M) {</td></tr>
+<tr><td class="num" id="LN627">627</td><td class="line">    st-&gt;d-&gt;audio_data_frames = st-&gt;d-&gt;samples_in_100ms * 4;</td></tr>
+<tr><td class="num" id="LN628">628</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN629">629</td><td class="line">    <span class='keyword'>return</span> 1;</td></tr>
+<tr><td class="num" id="LN630">630</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN631">631</td><td class="line">  st-&gt;d-&gt;audio_data = (<span class='keyword'>double</span>*) malloc(st-&gt;d-&gt;audio_data_frames *</td></tr>
+<tr><td class="num" id="LN632">632</td><td class="line">                                       st-&gt;channels *</td></tr>
+<tr><td class="num" id="LN633">633</td><td class="line">                                       <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>));</td></tr>
+<tr><td class="num" id="LN634">634</td><td class="line">  <span class='macro'>CHECK_ERROR(!st-&gt;d-&gt;audio_data, EBUR128_ERROR_NOMEM, exit)<span class='expansion'>if ((!st-&gt;d-&gt;audio_data)) { errcode = (EBUR128_ERROR_NOMEM<br>); goto exit; }</span></span></td></tr>
+<tr><td class="num" id="LN635">635</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN636">636</td><td class="line">  <span class='comment'>/* the first block needs 400ms of audio data */</span></td></tr>
+<tr><td class="num" id="LN637">637</td><td class="line">  st-&gt;d-&gt;needed_frames = st-&gt;d-&gt;samples_in_100ms * 4;</td></tr>
+<tr><td class="num" id="LN638">638</td><td class="line">  <span class='comment'>/* start at the beginning of the buffer */</span></td></tr>
+<tr><td class="num" id="LN639">639</td><td class="line">  st-&gt;d-&gt;audio_data_index = 0;</td></tr>
+<tr><td class="num" id="LN640">640</td><td class="line">  <span class='comment'>/* reset short term frame counter */</span></td></tr>
+<tr><td class="num" id="LN641">641</td><td class="line">  st-&gt;d-&gt;short_term_frame_counter = 0;</td></tr>
+<tr><td class="num" id="LN642">642</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN643">643</td><td class="line">  <span class='keyword'>return</span> 0;</td></tr>
+<tr><td class="num" id="LN644">644</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN645">645</td><td class="line">exit:</td></tr>
+<tr><td class="num" id="LN646">646</td><td class="line">  <span class='keyword'>return</span> 1;</td></tr>
+<tr><td class="num" id="LN647">647</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN648">648</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN649">649</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN650">650</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_energy_shortterm(ebur128_state* st, <span class='keyword'>double</span>* out);</td></tr>
+<tr><td class="num" id="LN651">651</td><td class="line"><span class='directive'>#define <span class='macro'>EBUR128_ADD_FRAMES(type)<span class='expansion'>int ebur128_add_frames_type(ebur128_state* st, const type* src<br>, size_t frames) { size_t src_index = 0; while (frames &gt; 0<br>) { if (frames &gt;= st-&gt;d-&gt;needed_frames) { ebur128_filter_type<br>(st, src + src_index, st-&gt;d-&gt;needed_frames); src_index +=<br> st-&gt;d-&gt;needed_frames * st-&gt;channels; frames -= st-&gt;<br>d-&gt;needed_frames; st-&gt;d-&gt;audio_data_index += st-&gt;<br>d-&gt;needed_frames * st-&gt;channels; if ((st-&gt;mode &amp;<br> EBUR128_MODE_I) == EBUR128_MODE_I) { if (ebur128_calc_gating_block<br>(st, st-&gt;d-&gt;samples_in_100ms * 4, ((void*)0))) { return<br> EBUR128_ERROR_NOMEM; } } if ((st-&gt;mode &amp; EBUR128_MODE_LRA<br>) == EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter<br> += st-&gt;d-&gt;needed_frames; if (st-&gt;d-&gt;short_term_frame_counter<br> == st-&gt;d-&gt;samples_in_100ms * 30) { struct ebur128_dq_entry<br>* block; double st_energy; ebur128_energy_shortterm(st, &amp;<br>st_energy); if (st_energy &gt;= histogram_energy_boundaries[0<br>]) { if (st-&gt;d-&gt;use_histogram) { ++st-&gt;d-&gt;short_term_block_energy_histogram<br>[ find_histogram_index(st_energy)]; } else { block = (struct ebur128_dq_entry<br>*) malloc(sizeof(struct ebur128_dq_entry)); if (!block) return<br> EBUR128_ERROR_NOMEM; block-&gt;z = st_energy; do { (block)-&gt;<br>entries.sle_next = (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first; (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;slh_first<br> = (block); } while ( 0); } } st-&gt;d-&gt;short_term_frame_counter<br> = st-&gt;d-&gt;samples_in_100ms * 20; } } st-&gt;d-&gt;needed_frames<br> = st-&gt;d-&gt;samples_in_100ms; if (st-&gt;d-&gt;audio_data_index<br> == st-&gt;d-&gt;audio_data_frames * st-&gt;channels) { st-&gt;<br>d-&gt;audio_data_index = 0; } } else { ebur128_filter_type(st<br>, src + src_index, frames); st-&gt;d-&gt;audio_data_index += frames<br> * st-&gt;channels; if ((st-&gt;mode &amp; EBUR128_MODE_LRA) ==<br> EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter +=<br> frames; } st-&gt;d-&gt;needed_frames -= frames; frames = 0; }<br> } return EBUR128_SUCCESS; }</span></span>                                               \</span></td></tr>
+<tr><td class="num" id="LN652">652</td><td class="line"><span class='directive'>int ebur128_add_frames_##type(ebur128_state* st,                               \</span></td></tr>
+<tr><td class="num" id="LN653">653</td><td class="line">                              <span class='directive'>const type* src, size_t frames) {                \</span></td></tr>
+<tr><td class="num" id="LN654">654</td><td class="line">  <span class='directive'>size_t src_index = 0;                                                        \</span></td></tr>
+<tr><td class="num" id="LN655">655</td><td class="line">  <span class='directive'>while (frames &gt; 0) {                                                         \</span></td></tr>
+<tr><td class="num" id="LN656">656</td><td class="line">    <span class='directive'>if (frames &gt;= st-&gt;d-&gt;needed_frames) {                                      \</span></td></tr>
+<tr><td class="num" id="LN657">657</td><td class="line">      <span class='directive'>ebur128_filter_##type(st, src + src_index, st-&gt;d-&gt;needed_frames);        \</span></td></tr>
+<tr><td class="num" id="LN658">658</td><td class="line">      <span class='directive'>src_index += st-&gt;d-&gt;needed_frames * st-&gt;channels;                        \</span></td></tr>
+<tr><td class="num" id="LN659">659</td><td class="line">      <span class='directive'>frames -= st-&gt;d-&gt;needed_frames;                                          \</span></td></tr>
+<tr><td class="num" id="LN660">660</td><td class="line">      <span class='directive'>st-&gt;d-&gt;audio_data_index += st-&gt;d-&gt;needed_frames * st-&gt;channels;          \</span></td></tr>
+<tr><td class="num" id="LN661">661</td><td class="line">      <span class='directive'>/* calculate the new gating block */                                     \</span></td></tr>
+<tr><td class="num" id="LN662">662</td><td class="line">      <span class='directive'>if ((st-&gt;mode &amp; EBUR128_MODE_I) == EBUR128_MODE_I) {                     \</span></td></tr>
+<tr><td class="num" id="LN663">663</td><td class="line">        <span class='directive'>if (ebur128_calc_gating_block(st, st-&gt;d-&gt;samples_in_100ms * 4, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>)) {\</span></td></tr>
+<tr><td class="num" id="LN664">664</td><td class="line">          <span class='directive'>return EBUR128_ERROR_NOMEM;                                          \</span></td></tr>
+<tr><td class="num" id="LN665">665</td><td class="line">        <span class='directive'>}                                                                      \</span></td></tr>
+<tr><td class="num" id="LN666">666</td><td class="line">      <span class='directive'>}                                                                        \</span></td></tr>
+<tr><td class="num" id="LN667">667</td><td class="line">      <span class='directive'>if ((st-&gt;mode &amp; EBUR128_MODE_LRA) == EBUR128_MODE_LRA) {                 \</span></td></tr>
+<tr><td class="num" id="LN668">668</td><td class="line">        <span class='directive'>st-&gt;d-&gt;short_term_frame_counter += st-&gt;d-&gt;needed_frames;               \</span></td></tr>
+<tr><td class="num" id="LN669">669</td><td class="line">        <span class='directive'>if (st-&gt;d-&gt;short_term_frame_counter == st-&gt;d-&gt;samples_in_100ms * 30) { \</span></td></tr>
+<tr><td class="num" id="LN670">670</td><td class="line">          <span class='directive'>struct ebur128_dq_entry* block;                                      \</span></td></tr>
+<tr><td class="num" id="LN671">671</td><td class="line">          <span class='directive'>double st_energy;                                                    \</span></td></tr>
+<tr><td class="num" id="LN672">672</td><td class="line">          <span class='directive'>ebur128_energy_shortterm(st, &amp;st_energy);                            \</span></td></tr>
+<tr><td class="num" id="LN673">673</td><td class="line">          <span class='directive'>if (st_energy &gt;= histogram_energy_boundaries[0]) {                   \</span></td></tr>
+<tr><td class="num" id="LN674">674</td><td class="line">            <span class='directive'>if (st-&gt;d-&gt;use_histogram) {                                        \</span></td></tr>
+<tr><td class="num" id="LN675">675</td><td class="line">              <span class='directive'>++st-&gt;d-&gt;short_term_block_energy_histogram[                      \</span></td></tr>
+<tr><td class="num" id="LN676">676</td><td class="line">                                              <span class='directive'>find_histogram_index(st_energy)];\</span></td></tr>
+<tr><td class="num" id="LN677">677</td><td class="line">            <span class='directive'>} else {                                                           \</span></td></tr>
+<tr><td class="num" id="LN678">678</td><td class="line">              <span class='directive'>block = (struct ebur128_dq_entry*)                               \</span></td></tr>
+<tr><td class="num" id="LN679">679</td><td class="line">                      <span class='directive'>malloc(sizeof(struct ebur128_dq_entry));                 \</span></td></tr>
+<tr><td class="num" id="LN680">680</td><td class="line">              <span class='directive'>if (!block) return EBUR128_ERROR_NOMEM;                          \</span></td></tr>
+<tr><td class="num" id="LN681">681</td><td class="line">              <span class='directive'>block-&gt;z = st_energy;                                            \</span></td></tr>
+<tr><td class="num" id="LN682">682</td><td class="line">              <span class='directive'><span class='macro'>SLIST_INSERT_HEAD(&amp;st-&gt;d-&gt;short_term_block_list, block, entries)<span class='expansion'>do { (block)-&gt;entries.sle_next = (&amp;st-&gt;d-&gt;short_term_block_list<br>)-&gt;slh_first; (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first = (block); } while ( 0)</span></span>;\</span></td></tr>
+<tr><td class="num" id="LN683">683</td><td class="line">            <span class='directive'>}                                                                  \</span></td></tr>
+<tr><td class="num" id="LN684">684</td><td class="line">          <span class='directive'>}                                                                    \</span></td></tr>
+<tr><td class="num" id="LN685">685</td><td class="line">          <span class='directive'>st-&gt;d-&gt;short_term_frame_counter = st-&gt;d-&gt;samples_in_100ms * 20;      \</span></td></tr>
+<tr><td class="num" id="LN686">686</td><td class="line">        <span class='directive'>}                                                                      \</span></td></tr>
+<tr><td class="num" id="LN687">687</td><td class="line">      <span class='directive'>}                                                                        \</span></td></tr>
+<tr><td class="num" id="LN688">688</td><td class="line">      <span class='directive'>/* 100ms are needed for all blocks besides the first one */              \</span></td></tr>
+<tr><td class="num" id="LN689">689</td><td class="line">      <span class='directive'>st-&gt;d-&gt;needed_frames = st-&gt;d-&gt;samples_in_100ms;                          \</span></td></tr>
+<tr><td class="num" id="LN690">690</td><td class="line">      <span class='directive'>/* reset audio_data_index when buffer full */                            \</span></td></tr>
+<tr><td class="num" id="LN691">691</td><td class="line">      <span class='directive'>if (st-&gt;d-&gt;audio_data_index == st-&gt;d-&gt;audio_data_frames * st-&gt;channels) {\</span></td></tr>
+<tr><td class="num" id="LN692">692</td><td class="line">        <span class='directive'>st-&gt;d-&gt;audio_data_index = 0;                                           \</span></td></tr>
+<tr><td class="num" id="LN693">693</td><td class="line">      <span class='directive'>}                                                                        \</span></td></tr>
+<tr><td class="num" id="LN694">694</td><td class="line">    <span class='directive'>} else {                                                                   \</span></td></tr>
+<tr><td class="num" id="LN695">695</td><td class="line">      <span class='directive'>ebur128_filter_##type(st, src + src_index, frames);                      \</span></td></tr>
+<tr><td class="num" id="LN696">696</td><td class="line">      <span class='directive'>st-&gt;d-&gt;audio_data_index += frames * st-&gt;channels;                        \</span></td></tr>
+<tr><td class="num" id="LN697">697</td><td class="line">      <span class='directive'>if ((st-&gt;mode &amp; EBUR128_MODE_LRA) == EBUR128_MODE_LRA) {                 \</span></td></tr>
+<tr><td class="num" id="LN698">698</td><td class="line">        <span class='directive'>st-&gt;d-&gt;short_term_frame_counter += frames;                             \</span></td></tr>
+<tr><td class="num" id="LN699">699</td><td class="line">      <span class='directive'>}                                                                        \</span></td></tr>
+<tr><td class="num" id="LN700">700</td><td class="line">      <span class='directive'>st-&gt;d-&gt;needed_frames -= frames;                                          \</span></td></tr>
+<tr><td class="num" id="LN701">701</td><td class="line">      <span class='directive'>frames = 0;                                                              \</span></td></tr>
+<tr><td class="num" id="LN702">702</td><td class="line">    <span class='directive'>}                                                                          \</span></td></tr>
+<tr><td class="num" id="LN703">703</td><td class="line">  <span class='directive'>}                                                                            \</span></td></tr>
+<tr><td class="num" id="LN704">704</td><td class="line">  <span class='directive'>return EBUR128_SUCCESS;                                                      \</span></td></tr>
+<tr><td class="num" id="LN705">705</td><td class="line"><span class='directive'>}</span></td></tr>
+<tr><td class="num" id="LN706">706</td><td class="line"><span class='macro'>EBUR128_ADD_FRAMES(<span class='keyword'>short</span>)<span class='expansion'>int ebur128_add_frames_short(ebur128_state* st, const short* src<br>, size_t frames) { size_t src_index = 0; while (frames &gt; 0<br>) { if (frames &gt;= st-&gt;d-&gt;needed_frames) { ebur128_filter_short<br>(st, src + src_index, st-&gt;d-&gt;needed_frames); src_index +=<br> st-&gt;d-&gt;needed_frames * st-&gt;channels; frames -= st-&gt;<br>d-&gt;needed_frames; st-&gt;d-&gt;audio_data_index += st-&gt;<br>d-&gt;needed_frames * st-&gt;channels; if ((st-&gt;mode &amp;<br> EBUR128_MODE_I) == EBUR128_MODE_I) { if (ebur128_calc_gating_block<br>(st, st-&gt;d-&gt;samples_in_100ms * 4, ((void*)0))) { return<br> EBUR128_ERROR_NOMEM; } } if ((st-&gt;mode &amp; EBUR128_MODE_LRA<br>) == EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter<br> += st-&gt;d-&gt;needed_frames; if (st-&gt;d-&gt;short_term_frame_counter<br> == st-&gt;d-&gt;samples_in_100ms * 30) { struct ebur128_dq_entry<br>* block; double st_energy; ebur128_energy_shortterm(st, &amp;<br>st_energy); if (st_energy &gt;= histogram_energy_boundaries[0<br>]) { if (st-&gt;d-&gt;use_histogram) { ++st-&gt;d-&gt;short_term_block_energy_histogram<br>[ find_histogram_index(st_energy)]; } else { block = (struct ebur128_dq_entry<br>*) malloc(sizeof(struct ebur128_dq_entry)); if (!block) return<br> EBUR128_ERROR_NOMEM; block-&gt;z = st_energy; do { (block)-&gt;<br>entries.sle_next = (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first; (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;slh_first<br> = (block); } while ( 0); } } st-&gt;d-&gt;short_term_frame_counter<br> = st-&gt;d-&gt;samples_in_100ms * 20; } } st-&gt;d-&gt;needed_frames<br> = st-&gt;d-&gt;samples_in_100ms; if (st-&gt;d-&gt;audio_data_index<br> == st-&gt;d-&gt;audio_data_frames * st-&gt;channels) { st-&gt;<br>d-&gt;audio_data_index = 0; } } else { ebur128_filter_short(st<br>, src + src_index, frames); st-&gt;d-&gt;audio_data_index += frames<br> * st-&gt;channels; if ((st-&gt;mode &amp; EBUR128_MODE_LRA) ==<br> EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter +=<br> frames; } st-&gt;d-&gt;needed_frames -= frames; frames = 0; }<br> } return EBUR128_SUCCESS; }</span></span></td></tr>
+<tr><td class="num" id="LN707">707</td><td class="line"><span class='macro'>EBUR128_ADD_FRAMES(<span class='keyword'>int</span>)<span class='expansion'>int ebur128_add_frames_int(ebur128_state* st, const int* src,<br> size_t frames) { size_t src_index = 0; while (frames &gt; 0)<br> { if (frames &gt;= st-&gt;d-&gt;needed_frames) { ebur128_filter_int<br>(st, src + src_index, st-&gt;d-&gt;needed_frames); src_index +=<br> st-&gt;d-&gt;needed_frames * st-&gt;channels; frames -= st-&gt;<br>d-&gt;needed_frames; st-&gt;d-&gt;audio_data_index += st-&gt;<br>d-&gt;needed_frames * st-&gt;channels; if ((st-&gt;mode &amp;<br> EBUR128_MODE_I) == EBUR128_MODE_I) { if (ebur128_calc_gating_block<br>(st, st-&gt;d-&gt;samples_in_100ms * 4, ((void*)0))) { return<br> EBUR128_ERROR_NOMEM; } } if ((st-&gt;mode &amp; EBUR128_MODE_LRA<br>) == EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter<br> += st-&gt;d-&gt;needed_frames; if (st-&gt;d-&gt;short_term_frame_counter<br> == st-&gt;d-&gt;samples_in_100ms * 30) { struct ebur128_dq_entry<br>* block; double st_energy; ebur128_energy_shortterm(st, &amp;<br>st_energy); if (st_energy &gt;= histogram_energy_boundaries[0<br>]) { if (st-&gt;d-&gt;use_histogram) { ++st-&gt;d-&gt;short_term_block_energy_histogram<br>[ find_histogram_index(st_energy)]; } else { block = (struct ebur128_dq_entry<br>*) malloc(sizeof(struct ebur128_dq_entry)); if (!block) return<br> EBUR128_ERROR_NOMEM; block-&gt;z = st_energy; do { (block)-&gt;<br>entries.sle_next = (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first; (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;slh_first<br> = (block); } while ( 0); } } st-&gt;d-&gt;short_term_frame_counter<br> = st-&gt;d-&gt;samples_in_100ms * 20; } } st-&gt;d-&gt;needed_frames<br> = st-&gt;d-&gt;samples_in_100ms; if (st-&gt;d-&gt;audio_data_index<br> == st-&gt;d-&gt;audio_data_frames * st-&gt;channels) { st-&gt;<br>d-&gt;audio_data_index = 0; } } else { ebur128_filter_int(st,<br> src + src_index, frames); st-&gt;d-&gt;audio_data_index += frames<br> * st-&gt;channels; if ((st-&gt;mode &amp; EBUR128_MODE_LRA) ==<br> EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter +=<br> frames; } st-&gt;d-&gt;needed_frames -= frames; frames = 0; }<br> } return EBUR128_SUCCESS; }</span></span></td></tr>
+<tr><td class="num" id="LN708">708</td><td class="line"><span class='macro'>EBUR128_ADD_FRAMES(<span class='keyword'>float</span>)<span class='expansion'>int ebur128_add_frames_float(ebur128_state* st, const float* src<br>, size_t frames) { size_t src_index = 0; while (frames &gt; 0<br>) { if (frames &gt;= st-&gt;d-&gt;needed_frames) { ebur128_filter_float<br>(st, src + src_index, st-&gt;d-&gt;needed_frames); src_index +=<br> st-&gt;d-&gt;needed_frames * st-&gt;channels; frames -= st-&gt;<br>d-&gt;needed_frames; st-&gt;d-&gt;audio_data_index += st-&gt;<br>d-&gt;needed_frames * st-&gt;channels; if ((st-&gt;mode &amp;<br> EBUR128_MODE_I) == EBUR128_MODE_I) { if (ebur128_calc_gating_block<br>(st, st-&gt;d-&gt;samples_in_100ms * 4, ((void*)0))) { return<br> EBUR128_ERROR_NOMEM; } } if ((st-&gt;mode &amp; EBUR128_MODE_LRA<br>) == EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter<br> += st-&gt;d-&gt;needed_frames; if (st-&gt;d-&gt;short_term_frame_counter<br> == st-&gt;d-&gt;samples_in_100ms * 30) { struct ebur128_dq_entry<br>* block; double st_energy; ebur128_energy_shortterm(st, &amp;<br>st_energy); if (st_energy &gt;= histogram_energy_boundaries[0<br>]) { if (st-&gt;d-&gt;use_histogram) { ++st-&gt;d-&gt;short_term_block_energy_histogram<br>[ find_histogram_index(st_energy)]; } else { block = (struct ebur128_dq_entry<br>*) malloc(sizeof(struct ebur128_dq_entry)); if (!block) return<br> EBUR128_ERROR_NOMEM; block-&gt;z = st_energy; do { (block)-&gt;<br>entries.sle_next = (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first; (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;slh_first<br> = (block); } while ( 0); } } st-&gt;d-&gt;short_term_frame_counter<br> = st-&gt;d-&gt;samples_in_100ms * 20; } } st-&gt;d-&gt;needed_frames<br> = st-&gt;d-&gt;samples_in_100ms; if (st-&gt;d-&gt;audio_data_index<br> == st-&gt;d-&gt;audio_data_frames * st-&gt;channels) { st-&gt;<br>d-&gt;audio_data_index = 0; } } else { ebur128_filter_float(st<br>, src + src_index, frames); st-&gt;d-&gt;audio_data_index += frames<br> * st-&gt;channels; if ((st-&gt;mode &amp; EBUR128_MODE_LRA) ==<br> EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter +=<br> frames; } st-&gt;d-&gt;needed_frames -= frames; frames = 0; }<br> } return EBUR128_SUCCESS; }</span></span></td></tr>
+<tr><td class="num" id="LN709">709</td><td class="line"><span class='macro'>EBUR128_ADD_FRAMES(<span class='keyword'>double</span>)<span class='expansion'>int ebur128_add_frames_double(ebur128_state* st, const double<br>* src, size_t frames) { size_t src_index = 0; while (frames &gt;<br> 0) { if (frames &gt;= st-&gt;d-&gt;needed_frames) { ebur128_filter_double<br>(st, src + src_index, st-&gt;d-&gt;needed_frames); src_index +=<br> st-&gt;d-&gt;needed_frames * st-&gt;channels; frames -= st-&gt;<br>d-&gt;needed_frames; st-&gt;d-&gt;audio_data_index += st-&gt;<br>d-&gt;needed_frames * st-&gt;channels; if ((st-&gt;mode &amp;<br> EBUR128_MODE_I) == EBUR128_MODE_I) { if (ebur128_calc_gating_block<br>(st, st-&gt;d-&gt;samples_in_100ms * 4, ((void*)0))) { return<br> EBUR128_ERROR_NOMEM; } } if ((st-&gt;mode &amp; EBUR128_MODE_LRA<br>) == EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter<br> += st-&gt;d-&gt;needed_frames; if (st-&gt;d-&gt;short_term_frame_counter<br> == st-&gt;d-&gt;samples_in_100ms * 30) { struct ebur128_dq_entry<br>* block; double st_energy; ebur128_energy_shortterm(st, &amp;<br>st_energy); if (st_energy &gt;= histogram_energy_boundaries[0<br>]) { if (st-&gt;d-&gt;use_histogram) { ++st-&gt;d-&gt;short_term_block_energy_histogram<br>[ find_histogram_index(st_energy)]; } else { block = (struct ebur128_dq_entry<br>*) malloc(sizeof(struct ebur128_dq_entry)); if (!block) return<br> EBUR128_ERROR_NOMEM; block-&gt;z = st_energy; do { (block)-&gt;<br>entries.sle_next = (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first; (&amp;st-&gt;d-&gt;short_term_block_list)-&gt;slh_first<br> = (block); } while ( 0); } } st-&gt;d-&gt;short_term_frame_counter<br> = st-&gt;d-&gt;samples_in_100ms * 20; } } st-&gt;d-&gt;needed_frames<br> = st-&gt;d-&gt;samples_in_100ms; if (st-&gt;d-&gt;audio_data_index<br> == st-&gt;d-&gt;audio_data_frames * st-&gt;channels) { st-&gt;<br>d-&gt;audio_data_index = 0; } } else { ebur128_filter_double(<br>st, src + src_index, frames); st-&gt;d-&gt;audio_data_index +=<br> frames * st-&gt;channels; if ((st-&gt;mode &amp; EBUR128_MODE_LRA<br>) == EBUR128_MODE_LRA) { st-&gt;d-&gt;short_term_frame_counter<br> += frames; } st-&gt;d-&gt;needed_frames -= frames; frames = 0<br>; } } return EBUR128_SUCCESS; }</span></span></td></tr>
+<tr><td class="num" id="LN710">710</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN711">711</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_gated_loudness(ebur128_state** sts, size_t size,</td></tr>
+<tr><td class="num" id="LN712">712</td><td class="line">                                  <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN713">713</td><td class="line">  <span class='keyword'>struct</span> ebur128_dq_entry* it;</td></tr>
+<tr><td class="num" id="LN714">714</td><td class="line">  <span class='keyword'>double</span> relative_threshold = 0.0;</td></tr>
+<tr><td class="num" id="LN715">715</td><td class="line">  <span class='keyword'>double</span> gated_loudness = 0.0;</td></tr>
+<tr><td class="num" id="LN716">716</td><td class="line">  size_t above_thresh_counter = 0;</td></tr>
+<tr><td class="num" id="LN717">717</td><td class="line">  size_t i, j, start_index;</td></tr>
+<tr><td class="num" id="LN718">718</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN719">719</td><td class="line">  <span class='keyword'>for</span> (i = 0; i &lt; size; i++) {</td></tr>
+<tr><td class="num" id="LN720">720</td><td class="line">    <span class='keyword'>if</span> (sts[i] &amp;&amp; (sts[i]-&gt;mode &amp; EBUR128_MODE_I) != EBUR128_MODE_I) {</td></tr>
+<tr><td class="num" id="LN721">721</td><td class="line">      <span class='keyword'>return</span> EBUR128_ERROR_INVALID_MODE;</td></tr>
+<tr><td class="num" id="LN722">722</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN723">723</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN724">724</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN725">725</td><td class="line">  <span class='keyword'>for</span> (i = 0; i &lt; size; i++) {</td></tr>
+<tr><td class="num" id="LN726">726</td><td class="line">    <span class='keyword'>if</span> (!sts[i]) <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN727">727</td><td class="line">    <span class='keyword'>if</span> (sts[i]-&gt;d-&gt;use_histogram) {</td></tr>
+<tr><td class="num" id="LN728">728</td><td class="line">      <span class='keyword'>for</span> (j = 0; j &lt; 1000; ++j) {</td></tr>
+<tr><td class="num" id="LN729">729</td><td class="line">        relative_threshold += sts[i]-&gt;d-&gt;block_energy_histogram[j] *</td></tr>
+<tr><td class="num" id="LN730">730</td><td class="line">                              histogram_energies[j];</td></tr>
+<tr><td class="num" id="LN731">731</td><td class="line">        above_thresh_counter += sts[i]-&gt;d-&gt;block_energy_histogram[j];</td></tr>
+<tr><td class="num" id="LN732">732</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN733">733</td><td class="line">    } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN734">734</td><td class="line">      <span class='macro'>SLIST_FOREACH(it, &amp;sts[i]-&gt;d-&gt;block_list, entries)<span class='expansion'>for((it) = (&amp;sts[i]-&gt;d-&gt;block_list)-&gt;slh_first; (<br>it); (it) = (it)-&gt;entries.sle_next)</span></span> {</td></tr>
+<tr><td class="num" id="LN735">735</td><td class="line">        ++above_thresh_counter;</td></tr>
+<tr><td class="num" id="LN736">736</td><td class="line">        relative_threshold += it-&gt;z;</td></tr>
+<tr><td class="num" id="LN737">737</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN738">738</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN739">739</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN740">740</td><td class="line">  <span class='keyword'>if</span> (!above_thresh_counter) {</td></tr>
+<tr><td class="num" id="LN741">741</td><td class="line">    *out = -<span class='macro'>HUGE_VAL<span class='expansion'>(__builtin_huge_val())</span></span>;</td></tr>
+<tr><td class="num" id="LN742">742</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN743">743</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN744">744</td><td class="line">  relative_threshold /= (<span class='keyword'>double</span>) above_thresh_counter;</td></tr>
+<tr><td class="num" id="LN745">745</td><td class="line">  relative_threshold *= relative_gate_factor;</td></tr>
+<tr><td class="num" id="LN746">746</td><td class="line">  above_thresh_counter = 0;</td></tr>
+<tr><td class="num" id="LN747">747</td><td class="line">  <span class='keyword'>if</span> (relative_threshold &lt; histogram_energy_boundaries[0]) {</td></tr>
+<tr><td class="num" id="LN748">748</td><td class="line">    start_index = 0;</td></tr>
+<tr><td class="num" id="LN749">749</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN750">750</td><td class="line">    start_index = find_histogram_index(relative_threshold);</td></tr>
+<tr><td class="num" id="LN751">751</td><td class="line">    <span class='keyword'>if</span> (relative_threshold &gt; histogram_energies[start_index]) {</td></tr>
+<tr><td class="num" id="LN752">752</td><td class="line">      ++start_index;</td></tr>
+<tr><td class="num" id="LN753">753</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN754">754</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN755">755</td><td class="line">  <span class='keyword'>for</span> (i = 0; i &lt; size; i++) {</td></tr>
+<tr><td class="num" id="LN756">756</td><td class="line">    <span class='keyword'>if</span> (!sts[i]) <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN757">757</td><td class="line">    <span class='keyword'>if</span> (sts[i]-&gt;d-&gt;use_histogram) {</td></tr>
+<tr><td class="num" id="LN758">758</td><td class="line">      <span class='keyword'>for</span> (j = start_index; j &lt; 1000; ++j) {</td></tr>
+<tr><td class="num" id="LN759">759</td><td class="line">        gated_loudness += sts[i]-&gt;d-&gt;block_energy_histogram[j] *</td></tr>
+<tr><td class="num" id="LN760">760</td><td class="line">                          histogram_energies[j];</td></tr>
+<tr><td class="num" id="LN761">761</td><td class="line">        above_thresh_counter += sts[i]-&gt;d-&gt;block_energy_histogram[j];</td></tr>
+<tr><td class="num" id="LN762">762</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN763">763</td><td class="line">    } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN764">764</td><td class="line">      <span class='macro'>SLIST_FOREACH(it, &amp;sts[i]-&gt;d-&gt;block_list, entries)<span class='expansion'>for((it) = (&amp;sts[i]-&gt;d-&gt;block_list)-&gt;slh_first; (<br>it); (it) = (it)-&gt;entries.sle_next)</span></span> {</td></tr>
+<tr><td class="num" id="LN765">765</td><td class="line">        <span class='keyword'>if</span> (it-&gt;z &gt;= relative_threshold) {</td></tr>
+<tr><td class="num" id="LN766">766</td><td class="line">          ++above_thresh_counter;</td></tr>
+<tr><td class="num" id="LN767">767</td><td class="line">          gated_loudness += it-&gt;z;</td></tr>
+<tr><td class="num" id="LN768">768</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN769">769</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN770">770</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN771">771</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN772">772</td><td class="line">  <span class='keyword'>if</span> (!above_thresh_counter) {</td></tr>
+<tr><td class="num" id="LN773">773</td><td class="line">    *out = -<span class='macro'>HUGE_VAL<span class='expansion'>(__builtin_huge_val())</span></span>;</td></tr>
+<tr><td class="num" id="LN774">774</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN775">775</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN776">776</td><td class="line">  gated_loudness /= (<span class='keyword'>double</span>) above_thresh_counter;</td></tr>
+<tr><td class="num" id="LN777">777</td><td class="line">  *out = ebur128_energy_to_loudness(gated_loudness);</td></tr>
+<tr><td class="num" id="LN778">778</td><td class="line">  <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN779">779</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN780">780</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN781">781</td><td class="line"><span class='keyword'>int</span> ebur128_loudness_global(ebur128_state* st, <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN782">782</td><td class="line">  <span class='keyword'>return</span> ebur128_gated_loudness(&amp;st, 1, out);</td></tr>
+<tr><td class="num" id="LN783">783</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN784">784</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN785">785</td><td class="line"><span class='keyword'>int</span> ebur128_loudness_global_multiple(ebur128_state** sts, size_t size,</td></tr>
+<tr><td class="num" id="LN786">786</td><td class="line">                                     <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN787">787</td><td class="line">  <span class='keyword'>return</span> ebur128_gated_loudness(sts, size, out);</td></tr>
+<tr><td class="num" id="LN788">788</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN789">789</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN790">790</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_energy_in_interval(ebur128_state* st,</td></tr>
+<tr><td class="num" id="LN791">791</td><td class="line">                                      size_t interval_frames,</td></tr>
+<tr><td class="num" id="LN792">792</td><td class="line">                                      <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN793">793</td><td class="line">  <span class='keyword'>if</span> (interval_frames &gt; st-&gt;d-&gt;audio_data_frames) {</td></tr>
+<tr><td class="num" id="LN794">794</td><td class="line">    <span class='keyword'>return</span> EBUR128_ERROR_INVALID_MODE;</td></tr>
+<tr><td class="num" id="LN795">795</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN796">796</td><td class="line">  <span class='keyword'>return</span> ebur128_calc_gating_block(st, interval_frames, out);</td></tr>
+<tr><td class="num" id="LN797">797</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN798">798</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN799">799</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_energy_shortterm(ebur128_state* st, <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN800">800</td><td class="line">  <span class='keyword'>return</span> ebur128_energy_in_interval(st, st-&gt;d-&gt;samples_in_100ms * 30, out);</td></tr>
+<tr><td class="num" id="LN801">801</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN802">802</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN803">803</td><td class="line"><span class='keyword'>int</span> ebur128_loudness_momentary(ebur128_state* st, <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN804">804</td><td class="line">  <span class='keyword'>double</span> energy;</td></tr>
+<tr><td class="num" id="LN805">805</td><td class="line">  <span class='keyword'>int</span> error = ebur128_energy_in_interval(st, st-&gt;d-&gt;samples_in_100ms * 4,</td></tr>
+<tr><td class="num" id="LN806">806</td><td class="line">                                         &amp;energy);</td></tr>
+<tr><td class="num" id="LN807">807</td><td class="line">  <span class='keyword'>if</span> (error) {</td></tr>
+<tr><td class="num" id="LN808">808</td><td class="line">    <span class='keyword'>return</span> error;</td></tr>
+<tr><td class="num" id="LN809">809</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> (energy &lt;= 0.0) {</td></tr>
+<tr><td class="num" id="LN810">810</td><td class="line">    *out = -<span class='macro'>HUGE_VAL<span class='expansion'>(__builtin_huge_val())</span></span>;</td></tr>
+<tr><td class="num" id="LN811">811</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN812">812</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN813">813</td><td class="line">  *out = ebur128_energy_to_loudness(energy);</td></tr>
+<tr><td class="num" id="LN814">814</td><td class="line">  <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN815">815</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN816">816</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN817">817</td><td class="line"><span class='keyword'>int</span> ebur128_loudness_shortterm(ebur128_state* st, <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN818">818</td><td class="line">  <span class='keyword'>double</span> energy;</td></tr>
+<tr><td class="num" id="LN819">819</td><td class="line">  <span class='keyword'>int</span> error = ebur128_energy_shortterm(st, &amp;energy);</td></tr>
+<tr><td class="num" id="LN820">820</td><td class="line">  <span class='keyword'>if</span> (error) {</td></tr>
+<tr><td class="num" id="LN821">821</td><td class="line">    <span class='keyword'>return</span> error;</td></tr>
+<tr><td class="num" id="LN822">822</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> (energy &lt;= 0.0) {</td></tr>
+<tr><td class="num" id="LN823">823</td><td class="line">    *out = -<span class='macro'>HUGE_VAL<span class='expansion'>(__builtin_huge_val())</span></span>;</td></tr>
+<tr><td class="num" id="LN824">824</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN825">825</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN826">826</td><td class="line">  *out = ebur128_energy_to_loudness(energy);</td></tr>
+<tr><td class="num" id="LN827">827</td><td class="line">  <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN828">828</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN829">829</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN830">830</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> ebur128_double_cmp(<span class='keyword'>const</span> <span class='keyword'>void</span> *p1, <span class='keyword'>const</span> <span class='keyword'>void</span> *p2) {</td></tr>
+<tr><td class="num" id="LN831">831</td><td class="line">  <span class='keyword'>const</span> <span class='keyword'>double</span>* d1 = (<span class='keyword'>const</span> <span class='keyword'>double</span>*) p1;</td></tr>
+<tr><td class="num" id="LN832">832</td><td class="line">  <span class='keyword'>const</span> <span class='keyword'>double</span>* d2 = (<span class='keyword'>const</span> <span class='keyword'>double</span>*) p2;</td></tr>
+<tr><td class="num" id="LN833">833</td><td class="line">  <span class='keyword'>return</span> (*d1 &gt; *d2) - (*d1 &lt; *d2);</td></tr>
+<tr><td class="num" id="LN834">834</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN835">835</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN836">836</td><td class="line"><span class='comment'>/* EBU - TECH 3342 */</span></td></tr>
+<tr><td class="num" id="LN837">837</td><td class="line"><span class='keyword'>int</span> ebur128_loudness_range_multiple(ebur128_state** sts, size_t size,</td></tr>
+<tr><td class="num" id="LN838">838</td><td class="line">                                    <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN839">839</td><td class="line">  size_t i, j;</td></tr>
+<tr><td class="num" id="LN840">840</td><td class="line">  <span class='keyword'>struct</span> ebur128_dq_entry* it;</td></tr>
+<tr><td class="num" id="LN841">841</td><td class="line">  <span class='keyword'>double</span>* stl_vector;</td></tr>
+<tr><td class="num" id="LN842">842</td><td class="line">  size_t stl_size;</td></tr>
+<tr><td class="num" id="LN843">843</td><td class="line">  <span class='keyword'>double</span>* stl_relgated;</td></tr>
+<tr><td class="num" id="LN844">844</td><td class="line">  size_t stl_relgated_size;</td></tr>
+<tr><td class="num" id="LN845">845</td><td class="line">  <span class='keyword'>double</span> stl_power, stl_integrated;</td></tr>
+<tr><td class="num" id="LN846">846</td><td class="line">  <span class='comment'>/* High and low percentile energy */</span></td></tr>
+<tr><td class="num" id="LN847">847</td><td class="line">  <span class='keyword'>double</span> h_en, l_en;</td></tr>
+<tr><td class="num" id="LN848">848</td><td class="line">  <span class='keyword'>int</span> use_histogram = 0;</td></tr>
+<tr><td class="num" id="LN849">849</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN850">850</td><td class="line">  <span class='keyword'>for</span> (i = 0; i &lt; size; ++i) {</td></tr>
+<tr><td class="num" id="LN851">851</td><td class="line">    <span class='keyword'>if</span> (sts[i]) {</td></tr>
+<tr><td class="num" id="LN852">852</td><td class="line">      <span class='keyword'>if</span> ((sts[i]-&gt;mode &amp; EBUR128_MODE_LRA) != EBUR128_MODE_LRA) {</td></tr>
+<tr><td class="num" id="LN853">853</td><td class="line">        <span class='keyword'>return</span> EBUR128_ERROR_INVALID_MODE;</td></tr>
+<tr><td class="num" id="LN854">854</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN855">855</td><td class="line">      <span class='keyword'>if</span> (i == 0 &amp;&amp; sts[i]-&gt;mode &amp; EBUR128_MODE_HISTOGRAM) {</td></tr>
+<tr><td class="num" id="LN856">856</td><td class="line">        use_histogram = 1;</td></tr>
+<tr><td class="num" id="LN857">857</td><td class="line">      } <span class='keyword'>else</span> <span class='keyword'>if</span> (use_histogram != !!(sts[i]-&gt;mode &amp; EBUR128_MODE_HISTOGRAM)) {</td></tr>
+<tr><td class="num" id="LN858">858</td><td class="line">        <span class='keyword'>return</span> EBUR128_ERROR_INVALID_MODE;</td></tr>
+<tr><td class="num" id="LN859">859</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN860">860</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN861">861</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN862">862</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN863">863</td><td class="line">  <span class='keyword'>if</span> (use_histogram) {</td></tr>
+<tr><td class="num" id="LN864">864</td><td class="line">    <span class='keyword'>unsigned</span> <span class='keyword'>long</span> hist[1000] = { 0 };</td></tr>
+<tr><td class="num" id="LN865">865</td><td class="line">    size_t percentile_low, percentile_high;</td></tr>
+<tr><td class="num" id="LN866">866</td><td class="line">    size_t index;</td></tr>
+<tr><td class="num" id="LN867">867</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN868">868</td><td class="line">    stl_size = 0;</td></tr>
+<tr><td class="num" id="LN869">869</td><td class="line">    stl_power = 0.0;</td></tr>
+<tr><td class="num" id="LN870">870</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; size; ++i) {</td></tr>
+<tr><td class="num" id="LN871">871</td><td class="line">      <span class='keyword'>if</span> (!sts[i]) <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN872">872</td><td class="line">      <span class='keyword'>for</span> (j = 0; j &lt; 1000; ++j) {</td></tr>
+<tr><td class="num" id="LN873">873</td><td class="line">        hist[j]   += sts[i]-&gt;d-&gt;short_term_block_energy_histogram[j];</td></tr>
+<tr><td class="num" id="LN874">874</td><td class="line">        stl_size  += sts[i]-&gt;d-&gt;short_term_block_energy_histogram[j];</td></tr>
+<tr><td class="num" id="LN875">875</td><td class="line">        stl_power += sts[i]-&gt;d-&gt;short_term_block_energy_histogram[j]</td></tr>
+<tr><td class="num" id="LN876">876</td><td class="line">                     * histogram_energies[j];</td></tr>
+<tr><td class="num" id="LN877">877</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN878">878</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN879">879</td><td class="line">    <span class='keyword'>if</span> (!stl_size) {</td></tr>
+<tr><td class="num" id="LN880">880</td><td class="line">      *out = 0.0;</td></tr>
+<tr><td class="num" id="LN881">881</td><td class="line">      <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN882">882</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN883">883</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN884">884</td><td class="line">    stl_power /= stl_size;</td></tr>
+<tr><td class="num" id="LN885">885</td><td class="line">    stl_integrated = minus_twenty_decibels * stl_power;</td></tr>
+<tr><td class="num" id="LN886">886</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN887">887</td><td class="line">    <span class='keyword'>if</span> (stl_integrated &lt; histogram_energy_boundaries[0]) {</td></tr>
+<tr><td class="num" id="LN888">888</td><td class="line">      index = 0;</td></tr>
+<tr><td class="num" id="LN889">889</td><td class="line">    } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN890">890</td><td class="line">      index = find_histogram_index(stl_integrated);</td></tr>
+<tr><td class="num" id="LN891">891</td><td class="line">      <span class='keyword'>if</span> (stl_integrated &gt; histogram_energies[index]) {</td></tr>
+<tr><td class="num" id="LN892">892</td><td class="line">        ++index;</td></tr>
+<tr><td class="num" id="LN893">893</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN894">894</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN895">895</td><td class="line">    stl_size = 0;</td></tr>
+<tr><td class="num" id="LN896">896</td><td class="line">    <span class='keyword'>for</span> (j = index; j &lt; 1000; ++j) {</td></tr>
+<tr><td class="num" id="LN897">897</td><td class="line">      stl_size += hist[j];</td></tr>
+<tr><td class="num" id="LN898">898</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN899">899</td><td class="line">    <span class='keyword'>if</span> (!stl_size) {</td></tr>
+<tr><td class="num" id="LN900">900</td><td class="line">      *out = 0.0;</td></tr>
+<tr><td class="num" id="LN901">901</td><td class="line">      <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN902">902</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN903">903</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN904">904</td><td class="line">    percentile_low  = (size_t) ((stl_size - 1) * 0.1 + 0.5);</td></tr>
+<tr><td class="num" id="LN905">905</td><td class="line">    percentile_high = (size_t) ((stl_size - 1) * 0.95 + 0.5);</td></tr>
+<tr><td class="num" id="LN906">906</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN907">907</td><td class="line">    stl_size = 0;</td></tr>
+<tr><td class="num" id="LN908">908</td><td class="line">    j = index;</td></tr>
+<tr><td class="num" id="LN909">909</td><td class="line">    <span class='keyword'>while</span> (stl_size &lt;= percentile_low) {</td></tr>
+<tr><td class="num" id="LN910">910</td><td class="line">      stl_size += hist[j++];</td></tr>
+<tr><td class="num" id="LN911">911</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN912">912</td><td class="line">    l_en = histogram_energies[j - 1];</td></tr>
+<tr><td class="num" id="LN913">913</td><td class="line">    <span class='keyword'>while</span> (stl_size &lt;= percentile_high) {</td></tr>
+<tr><td class="num" id="LN914">914</td><td class="line">      stl_size += hist[j++];</td></tr>
+<tr><td class="num" id="LN915">915</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN916">916</td><td class="line">    h_en = histogram_energies[j - 1];</td></tr>
+<tr><td class="num" id="LN917">917</td><td class="line">    *out = ebur128_energy_to_loudness(h_en) - ebur128_energy_to_loudness(l_en);</td></tr>
+<tr><td class="num" id="LN918">918</td><td class="line">    <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN919">919</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN920">920</td><td class="line">  } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN921">921</td><td class="line">    stl_size = 0;</td></tr>
+<tr><td class="num" id="LN922">922</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; size; ++i) {</td></tr>
+<tr><td class="num" id="LN923">923</td><td class="line">      <span class='keyword'>if</span> (!sts[i]) <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN924">924</td><td class="line">      <span class='macro'>SLIST_FOREACH(it, &amp;sts[i]-&gt;d-&gt;short_term_block_list, entries)<span class='expansion'>for((it) = (&amp;sts[i]-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first; (it); (it) = (it)-&gt;entries.sle_next)</span></span> {</td></tr>
+<tr><td class="num" id="LN925">925</td><td class="line">        ++stl_size;</td></tr>
+<tr><td class="num" id="LN926">926</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN927">927</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN928">928</td><td class="line">    <span class='keyword'>if</span> (!stl_size) {</td></tr>
+<tr><td class="num" id="LN929">929</td><td class="line">      *out = 0.0;</td></tr>
+<tr><td class="num" id="LN930">930</td><td class="line">      <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN931">931</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN932">932</td><td class="line">    stl_vector = (<span class='keyword'>double</span>*) malloc(stl_size * <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>));</td></tr>
+<tr><td class="num" id="LN933">933</td><td class="line">    <span class='keyword'>if</span> (!stl_vector)</td></tr>
+<tr><td class="num" id="LN934">934</td><td class="line">      <span class='keyword'>return</span> EBUR128_ERROR_NOMEM;</td></tr>
+<tr><td class="num" id="LN935">935</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN936">936</td><td class="line">    <span class='keyword'>for</span> (j = 0, i = 0; i &lt; size; ++i) {</td></tr>
+<tr><td class="num" id="LN937">937</td><td class="line">      <span class='keyword'>if</span> (!sts[i]) <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN938">938</td><td class="line">      <span class='macro'>SLIST_FOREACH(it, &amp;sts[i]-&gt;d-&gt;short_term_block_list, entries)<span class='expansion'>for((it) = (&amp;sts[i]-&gt;d-&gt;short_term_block_list)-&gt;<br>slh_first; (it); (it) = (it)-&gt;entries.sle_next)</span></span> {</td></tr>
+<tr><td class="num" id="LN939">939</td><td class="line">        stl_vector[j] = it-&gt;z;</td></tr>
+<tr><td class="num" id="LN940">940</td><td class="line">        ++j;</td></tr>
+<tr><td class="num" id="LN941">941</td><td class="line">      }</td></tr>
+<tr><td class="num" id="LN942">942</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN943">943</td><td class="line">    qsort(stl_vector, stl_size, <span class='keyword'>sizeof</span>(<span class='keyword'>double</span>), ebur128_double_cmp);</td></tr>
+<tr><td class="num" id="LN944">944</td><td class="line">    stl_power = 0.0;</td></tr>
+<tr><td class="num" id="LN945">945</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; stl_size; ++i) {</td></tr>
+<tr><td class="num" id="LN946">946</td><td class="line">      stl_power += stl_vector[i];</td></tr>
+<tr><td class="num" id="LN947">947</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN948">948</td><td class="line">    stl_power /= (<span class='keyword'>double</span>) stl_size;</td></tr>
+<tr><td class="num" id="LN949">949</td><td class="line">    stl_integrated = minus_twenty_decibels * stl_power;</td></tr>
+<tr><td class="num" id="LN950">950</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN951">951</td><td class="line">    stl_relgated = stl_vector;</td></tr>
+<tr><td class="num" id="LN952">952</td><td class="line">    stl_relgated_size = stl_size;</td></tr>
+<tr><td class="num" id="LN953">953</td><td class="line">    <span class='keyword'>while</span> (stl_relgated_size &gt; 0 &amp;&amp; *stl_relgated &lt; stl_integrated) {</td></tr>
+<tr><td class="num" id="LN954">954</td><td class="line">      ++stl_relgated;</td></tr>
+<tr><td class="num" id="LN955">955</td><td class="line">      --stl_relgated_size;</td></tr>
+<tr><td class="num" id="LN956">956</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN957">957</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN958">958</td><td class="line">    <span class='keyword'>if</span> (stl_relgated_size) {</td></tr>
+<tr><td class="num" id="LN959">959</td><td class="line">      h_en = stl_relgated[(size_t) ((stl_relgated_size - 1) * 0.95 + 0.5)];</td></tr>
+<tr><td class="num" id="LN960">960</td><td class="line">      l_en = stl_relgated[(size_t) ((stl_relgated_size - 1) * 0.1 + 0.5)];</td></tr>
+<tr><td class="num" id="LN961">961</td><td class="line">      free(stl_vector);</td></tr>
+<tr><td class="num" id="LN962">962</td><td class="line">      *out = ebur128_energy_to_loudness(h_en) - ebur128_energy_to_loudness(l_en);</td></tr>
+<tr><td class="num" id="LN963">963</td><td class="line">      <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN964">964</td><td class="line">    } <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN965">965</td><td class="line">      free(stl_vector);</td></tr>
+<tr><td class="num" id="LN966">966</td><td class="line">      *out = 0.0;</td></tr>
+<tr><td class="num" id="LN967">967</td><td class="line">      <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN968">968</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN969">969</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN970">970</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN971">971</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN972">972</td><td class="line"><span class='keyword'>int</span> ebur128_loudness_range(ebur128_state* st, <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN973">973</td><td class="line">  <span class='keyword'>return</span> ebur128_loudness_range_multiple(&amp;st, 1, out);</td></tr>
+<tr><td class="num" id="LN974">974</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN975">975</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN976">976</td><td class="line"><span class='keyword'>int</span> ebur128_sample_peak(ebur128_state* st,</td></tr>
+<tr><td class="num" id="LN977">977</td><td class="line">                        <span class='keyword'>unsigned</span> <span class='keyword'>int</span> channel_number,</td></tr>
+<tr><td class="num" id="LN978">978</td><td class="line">                        <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN979">979</td><td class="line">  <span class='keyword'>if</span> ((st-&gt;mode &amp; EBUR128_MODE_SAMPLE_PEAK) != EBUR128_MODE_SAMPLE_PEAK) {</td></tr>
+<tr><td class="num" id="LN980">980</td><td class="line">    <span class='keyword'>return</span> EBUR128_ERROR_INVALID_MODE;</td></tr>
+<tr><td class="num" id="LN981">981</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> (channel_number &gt;= st-&gt;channels) {</td></tr>
+<tr><td class="num" id="LN982">982</td><td class="line">    <span class='keyword'>return</span> EBUR128_ERROR_INVALID_CHANNEL_INDEX;</td></tr>
+<tr><td class="num" id="LN983">983</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN984">984</td><td class="line">  *out = st-&gt;d-&gt;sample_peak[channel_number];</td></tr>
+<tr><td class="num" id="LN985">985</td><td class="line">  <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN986">986</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN987">987</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN988">988</td><td class="line"><span class='directive'>#ifdef USE_SPEEX_RESAMPLER</span></td></tr>
+<tr><td class="num" id="LN989">989</td><td class="line"><span class='keyword'>int</span> ebur128_true_peak(ebur128_state* st,</td></tr>
+<tr><td class="num" id="LN990">990</td><td class="line">                      <span class='keyword'>unsigned</span> <span class='keyword'>int</span> channel_number,</td></tr>
+<tr><td class="num" id="LN991">991</td><td class="line">                      <span class='keyword'>double</span>* out) {</td></tr>
+<tr><td class="num" id="LN992">992</td><td class="line">  <span class='keyword'>if</span> ((st-&gt;mode &amp; EBUR128_MODE_TRUE_PEAK) != EBUR128_MODE_TRUE_PEAK) {</td></tr>
+<tr><td class="num" id="LN993">993</td><td class="line">    <span class='keyword'>return</span> EBUR128_ERROR_INVALID_MODE;</td></tr>
+<tr><td class="num" id="LN994">994</td><td class="line">  } <span class='keyword'>else</span> <span class='keyword'>if</span> (channel_number &gt;= st-&gt;channels) {</td></tr>
+<tr><td class="num" id="LN995">995</td><td class="line">    <span class='keyword'>return</span> EBUR128_ERROR_INVALID_CHANNEL_INDEX;</td></tr>
+<tr><td class="num" id="LN996">996</td><td class="line">  }</td></tr>
+<tr><td class="num" id="LN997">997</td><td class="line">  *out = st-&gt;d-&gt;true_peak[channel_number] &gt; st-&gt;d-&gt;sample_peak[channel_number]</td></tr>
+<tr><td class="num" id="LN998">998</td><td class="line">       ? st-&gt;d-&gt;true_peak[channel_number]</td></tr>
+<tr><td class="num" id="LN999">999</td><td class="line">       : st-&gt;d-&gt;sample_peak[channel_number];</td></tr>
+<tr><td class="num" id="LN1000">1000</td><td class="line">  <span class='keyword'>return</span> EBUR128_SUCCESS;</td></tr>
+<tr><td class="num" id="LN1001">1001</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN1002">1002</td><td class="line"><span class='directive'>#endif</span></td></tr>
+</table></body></html>

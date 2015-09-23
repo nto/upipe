@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+<head>
+<title>../../include/upipe-ts/uref_ts_event.h</title>
+<style type="text/css">
+ body { color:#000000; background-color:#ffffff }
+ body { font-family:Helvetica, sans-serif; font-size:10pt }
+ h1 { font-size:14pt }
+ .code { border-collapse:collapse; width:100%; }
+ .code { font-family: "Monospace", monospace; font-size:10pt }
+ .code { line-height: 1.2em }
+ .comment { color: green; font-style: oblique }
+ .keyword { color: blue }
+ .string_literal { color: red }
+ .directive { color: darkmagenta }
+ .expansion { display: none; }
+ .macro:hover .expansion { display: block; border: 2px solid #FF0000; padding: 2px; background-color:#FFF0F0; font-weight: normal;   -webkit-border-radius:5px;  -webkit-box-shadow:1px 1px 7px #000; position: absolute; top: -1em; left:10em; z-index: 1 } 
+ .macro { color: darkmagenta; background-color:LemonChiffon; position: relative }
+ .num { width:2.5em; padding-right:2ex; background-color:#eeeeee }
+ .num { text-align:right; font-size:8pt }
+ .num { color:#444444 }
+ .line { padding-left: 1ex; border-left: 3px solid #ccc }
+ .line { white-space: pre }
+ .msg { -webkit-box-shadow:1px 1px 7px #000 }
+ .msg { -webkit-border-radius:5px }
+ .msg { font-family:Helvetica, sans-serif; font-size:8pt }
+ .msg { float:left }
+ .msg { padding:0.25em 1ex 0.25em 1ex }
+ .msg { margin-top:10px; margin-bottom:10px }
+ .msg { font-weight:bold }
+ .msg { max-width:60em; word-wrap: break-word; white-space: pre-wrap }
+ .msgT { padding:0x; spacing:0x }
+ .msgEvent { background-color:#fff8b4; color:#000000 }
+ .msgControl { background-color:#bbbbbb; color:#000000 }
+ .mrange { background-color:#dfddf3 }
+ .mrange { border-bottom:1px solid #6F9DBE }
+ .PathIndex { font-weight: bold; padding:0px 5px; margin-right:5px; }
+ .PathIndex { -webkit-border-radius:8px }
+ .PathIndexEvent { background-color:#bfba87 }
+ .PathIndexControl { background-color:#8c8c8c }
+ .PathNav a { text-decoration:none; font-size: larger }
+ .CodeInsertionHint { font-weight: bold; background-color: #10dd10 }
+ .CodeRemovalHint { background-color:#de1010 }
+ .CodeRemovalHint { border-bottom:1px solid #6F9DBE }
+ table.simpletable {
+   padding: 5px;
+   font-size:12pt;
+   margin:20px;
+   border-collapse: collapse; border-spacing: 0px;
+ }
+ td.rowname {
+   text-align:right; font-weight:bold; color:#444444;
+   padding-right:2ex; }
+</style>
+</head>
+<body>
+<!-- BUGDESC Declared variable-length array (VLA) has zero size -->
+
+<!-- BUGTYPE Dangerous variable-length array (VLA) declaration -->
+
+<!-- BUGCATEGORY Logic error -->
+
+<!-- BUGFILE /home/nitro/upipe/lib/upipe-ts/../../include/upipe-ts/uref_ts_event.h -->
+
+<!-- FILENAME uref_ts_event.h -->
+
+<!-- FUNCTIONNAME uref_ts_event_compare_descriptors -->
+
+<!-- BUGLINE 50 -->
+
+<!-- BUGCOLUMN 1 -->
+
+<!-- BUGPATHLENGTH 2 -->
+
+<!-- BUGMETAEND -->
+<!-- REPORTHEADER -->
+<h3>Bug Summary</h3>
+<table class="simpletable">
+<tr><td class="rowname">File:</td><td>lib/upipe-ts/../../include/upipe-ts/uref_ts_event.h</td></tr>
+<tr><td class="rowname">Location:</td><td><a href="#EndPath">line 50, column 1</a></td></tr>
+<tr><td class="rowname">Description:</td><td>Declared variable-length array (VLA) has zero size</td></tr>
+</table>
+<!-- REPORTSUMMARYEXTRA -->
+<h3>Annotated Source Code</h3>
+<table class="code">
+<tr><td class="num" id="LN1">1</td><td class="line"><span class='comment'>/*</span></td></tr>
+<tr><td class="num" id="LN2">2</td><td class="line"> <span class='comment'>* Copyright (C) 2015 OpenHeadend S.A.R.L.</span></td></tr>
+<tr><td class="num" id="LN3">3</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN4">4</td><td class="line"> <span class='comment'>* Authors: Christophe Massiot</span></td></tr>
+<tr><td class="num" id="LN5">5</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN6">6</td><td class="line"> <span class='comment'>* Permission is hereby granted, free of charge, to any person obtaining</span></td></tr>
+<tr><td class="num" id="LN7">7</td><td class="line"> <span class='comment'>* a copy of this software and associated documentation files (the</span></td></tr>
+<tr><td class="num" id="LN8">8</td><td class="line"> <span class='comment'>* "Software"), to deal in the Software without restriction, including</span></td></tr>
+<tr><td class="num" id="LN9">9</td><td class="line"> <span class='comment'>* without limitation the rights to use, copy, modify, merge, publish,</span></td></tr>
+<tr><td class="num" id="LN10">10</td><td class="line"> <span class='comment'>* distribute, sublicense, and/or sell copies of the Software, and to</span></td></tr>
+<tr><td class="num" id="LN11">11</td><td class="line"> <span class='comment'>* permit persons to whom the Software is furnished to do so, subject</span></td></tr>
+<tr><td class="num" id="LN12">12</td><td class="line"> <span class='comment'>* to the following conditions:</span></td></tr>
+<tr><td class="num" id="LN13">13</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN14">14</td><td class="line"> <span class='comment'>* The above copyright notice and this permission notice shall be</span></td></tr>
+<tr><td class="num" id="LN15">15</td><td class="line"> <span class='comment'>* included in all copies or substantial portions of the Software.</span></td></tr>
+<tr><td class="num" id="LN16">16</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN17">17</td><td class="line"> <span class='comment'>* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,</span></td></tr>
+<tr><td class="num" id="LN18">18</td><td class="line"> <span class='comment'>* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span></td></tr>
+<tr><td class="num" id="LN19">19</td><td class="line"> <span class='comment'>* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</span></td></tr>
+<tr><td class="num" id="LN20">20</td><td class="line"> <span class='comment'>* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY</span></td></tr>
+<tr><td class="num" id="LN21">21</td><td class="line"> <span class='comment'>* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,</span></td></tr>
+<tr><td class="num" id="LN22">22</td><td class="line"> <span class='comment'>* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE</span></td></tr>
+<tr><td class="num" id="LN23">23</td><td class="line"> <span class='comment'>* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span></td></tr>
+<tr><td class="num" id="LN24">24</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN25">25</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN26">26</td><td class="line"><span class='comment'>/** @file</span></td></tr>
+<tr><td class="num" id="LN27">27</td><td class="line"> <span class='comment'>* @short Upipe event attributes for TS</span></td></tr>
+<tr><td class="num" id="LN28">28</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN29">29</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN30">30</td><td class="line"><span class='directive'>#ifndef _UPIPE_TS_UREF_TS_EVENT_H_</span></td></tr>
+<tr><td class="num" id="LN31">31</td><td class="line"><span class='comment'>/** @hidden */</span></td></tr>
+<tr><td class="num" id="LN32">32</td><td class="line"><span class='directive'>#define _UPIPE_TS_UREF_TS_EVENT_H_</span></td></tr>
+<tr><td class="num" id="LN33">33</td><td class="line"><span class='directive'>#ifdef __cplusplus</span></td></tr>
+<tr><td class="num" id="LN34">34</td><td class="line"><span class='keyword'>extern</span> <span class='string_literal'>"C"</span> {</td></tr>
+<tr><td class="num" id="LN35">35</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN36">36</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN37">37</td><td class="line"><span class='directive'>#include &lt;upipe/uref.h&gt;</span></td></tr>
+<tr><td class="num" id="LN38">38</td><td class="line"><span class='directive'>#include &lt;upipe/uref_attr.h&gt;</span></td></tr>
+<tr><td class="num" id="LN39">39</td><td class="line"><span class='directive'>#include &lt;upipe-ts/uref_ts_attr.h&gt;</span></td></tr>
+<tr><td class="num" id="LN40">40</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN41">41</td><td class="line"><span class='directive'>#include &lt;string.h&gt;</span></td></tr>
+<tr><td class="num" id="LN42">42</td><td class="line"><span class='directive'>#include &lt;stdint.h&gt;</span></td></tr>
+<tr><td class="num" id="LN43">43</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN44">44</td><td class="line"><span class='macro'>UREF_ATTR_SMALL_UNSIGNED_VA(ts_event, running_status, <span class='string_literal'>"te.run[%"</span>PRIu64<span class='string_literal'>"]"</span>,<span class='expansion'>static inline int uref_ts_event_get_running_status(struct uref<br> *uref, uint8_t *p, uint64_t event) { return uref_attr_get_small_unsigned_va<br>(uref, p, UDICT_TYPE_SMALL_UNSIGNED, "te.run[%""l" "u""]", event<br>); } static inline int uref_ts_event_set_running_status(struct<br> uref *uref, uint8_t v, uint64_t event) { return uref_attr_set_small_unsigned_va<br>(uref, v, UDICT_TYPE_SMALL_UNSIGNED, "te.run[%""l" "u""]", event<br>); } static inline int uref_ts_event_delete_running_status(struct<br> uref *uref, uint64_t event){ return uref_attr_delete_va(uref<br>, UDICT_TYPE_SMALL_UNSIGNED, "te.run[%""l" "u""]", event); } static<br> inline int uref_ts_event_match_running_status(struct uref *uref<br>, uint8_t min, uint8_t max, uint64_t event) { uint8_t v; do {<br> int ubase_err_tmp = uref_ts_event_get_running_status(uref, &amp;<br>v, event); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) return ubase_err_tmp; } while (0);; return (v &gt;= min<br>) &amp;&amp; (v &lt;= max) ? UBASE_ERR_NONE : UBASE_ERR_INVALID<br>; } static inline int uref_ts_event_cmp_running_status(struct<br> uref *uref1, struct uref *uref2, uint64_t event) { uint8_t v1<br> = 0, v2 = 0; int err1 = uref_ts_event_get_running_status(uref1<br>, &amp;v1, event); int err2 = uref_ts_event_get_running_status<br>(uref2, &amp;v2, event); if (!ubase_check(err1) &amp;&amp; !ubase_check<br>(err2)) return 0; if (!ubase_check(err1) || !ubase_check(err2<br>)) return -1; return v1 - v2; }</span></span></td></tr>
+<tr><td class="num" id="LN45">45</td><td class="line">        <span class='macro'>event running status, uint64_t event, event)<span class='expansion'>static inline int uref_ts_event_get_running_status(struct uref<br> *uref, uint8_t *p, uint64_t event) { return uref_attr_get_small_unsigned_va<br>(uref, p, UDICT_TYPE_SMALL_UNSIGNED, "te.run[%""l" "u""]", event<br>); } static inline int uref_ts_event_set_running_status(struct<br> uref *uref, uint8_t v, uint64_t event) { return uref_attr_set_small_unsigned_va<br>(uref, v, UDICT_TYPE_SMALL_UNSIGNED, "te.run[%""l" "u""]", event<br>); } static inline int uref_ts_event_delete_running_status(struct<br> uref *uref, uint64_t event){ return uref_attr_delete_va(uref<br>, UDICT_TYPE_SMALL_UNSIGNED, "te.run[%""l" "u""]", event); } static<br> inline int uref_ts_event_match_running_status(struct uref *uref<br>, uint8_t min, uint8_t max, uint64_t event) { uint8_t v; do {<br> int ubase_err_tmp = uref_ts_event_get_running_status(uref, &amp;<br>v, event); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) return ubase_err_tmp; } while (0);; return (v &gt;= min<br>) &amp;&amp; (v &lt;= max) ? UBASE_ERR_NONE : UBASE_ERR_INVALID<br>; } static inline int uref_ts_event_cmp_running_status(struct<br> uref *uref1, struct uref *uref2, uint64_t event) { uint8_t v1<br> = 0, v2 = 0; int err1 = uref_ts_event_get_running_status(uref1<br>, &amp;v1, event); int err2 = uref_ts_event_get_running_status<br>(uref2, &amp;v2, event); if (!ubase_check(err1) &amp;&amp; !ubase_check<br>(err2)) return 0; if (!ubase_check(err1) || !ubase_check(err2<br>)) return -1; return v1 - v2; }</span></span></td></tr>
+<tr><td class="num" id="LN46">46</td><td class="line"><span class='macro'>UREF_ATTR_VOID_VA(ts_event, scrambled, <span class='string_literal'>"te.ca[%"</span>PRIu64<span class='string_literal'>"]"</span>, scrambled event,<span class='expansion'>static inline int uref_ts_event_get_scrambled(struct uref *uref<br>, uint64_t event) { return uref_attr_get_void_va(uref, ((void<br>*)0), UDICT_TYPE_VOID, "te.ca[%""l" "u""]", event); } static inline<br> int uref_ts_event_set_scrambled(struct uref *uref, uint64_t event<br>) { return uref_attr_set_void_va(uref, ((void*)0), UDICT_TYPE_VOID<br>, "te.ca[%""l" "u""]", event); } static inline int uref_ts_event_delete_scrambled<br>(struct uref *uref, uint64_t event){ return uref_attr_delete_va<br>(uref, UDICT_TYPE_VOID, "te.ca[%""l" "u""]", event); } static<br> inline int uref_ts_event_cmp_scrambled(struct uref *uref1, struct<br> uref *uref2, uint64_t event) { int err1 = uref_ts_event_get_scrambled<br>(uref1, event); int err2 = uref_ts_event_get_scrambled(uref2,<br> event); if (!ubase_check(err1) &amp;&amp; !ubase_check(err2)<br>) return 0; if (!ubase_check(err1) || !ubase_check(err2)) return<br> -1; return 0; }</span></span></td></tr>
+<tr><td class="num" id="LN47">47</td><td class="line">        <span class='macro'>uint64_t event, event)<span class='expansion'>static inline int uref_ts_event_get_scrambled(struct uref *uref<br>, uint64_t event) { return uref_attr_get_void_va(uref, ((void<br>*)0), UDICT_TYPE_VOID, "te.ca[%""l" "u""]", event); } static inline<br> int uref_ts_event_set_scrambled(struct uref *uref, uint64_t event<br>) { return uref_attr_set_void_va(uref, ((void*)0), UDICT_TYPE_VOID<br>, "te.ca[%""l" "u""]", event); } static inline int uref_ts_event_delete_scrambled<br>(struct uref *uref, uint64_t event){ return uref_attr_delete_va<br>(uref, UDICT_TYPE_VOID, "te.ca[%""l" "u""]", event); } static<br> inline int uref_ts_event_cmp_scrambled(struct uref *uref1, struct<br> uref *uref2, uint64_t event) { int err1 = uref_ts_event_get_scrambled<br>(uref1, event); int err2 = uref_ts_event_get_scrambled(uref2,<br> event); if (!ubase_check(err1) &amp;&amp; !ubase_check(err2)<br>) return 0; if (!ubase_check(err1) || !ubase_check(err2)) return<br> -1; return 0; }</span></span></td></tr>
+<tr><td class="num" id="LN48">48</td><td class="line"><span class='macro'>UREF_ATTR_UNSIGNED_VA(ts_event, descriptors, <span class='string_literal'>"te.descs[%"</span>PRIu64<span class='string_literal'>"]"</span>,<span class='expansion'>static inline int uref_ts_event_get_descriptors(struct uref *<br>uref, uint64_t *p, uint64_t event) { return uref_attr_get_unsigned_va<br>(uref, p, UDICT_TYPE_UNSIGNED, "te.descs[%""l" "u""]", event)<br>; } static inline int uref_ts_event_set_descriptors(struct uref<br> *uref, uint64_t v, uint64_t event) { return uref_attr_set_unsigned_va<br>(uref, v, UDICT_TYPE_UNSIGNED, "te.descs[%""l" "u""]", event)<br>; } static inline int uref_ts_event_delete_descriptors(struct<br> uref *uref, uint64_t event){ return uref_attr_delete_va(uref<br>, UDICT_TYPE_UNSIGNED, "te.descs[%""l" "u""]", event); } static<br> inline int uref_ts_event_match_descriptors(struct uref *uref<br>, uint8_t min, uint8_t max, uint64_t event) { uint64_t v; do {<br> int ubase_err_tmp = uref_ts_event_get_descriptors(uref, &amp;<br>v, event); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) return ubase_err_tmp; } while (0);; return (v &gt;= min<br>) &amp;&amp; (v &lt;= max) ? UBASE_ERR_NONE : UBASE_ERR_INVALID<br>; } static inline int uref_ts_event_cmp_descriptors(struct uref<br> *uref1, struct uref *uref2, uint64_t event) { uint64_t v1 = 0<br>, v2 = 0; int err1 = uref_ts_event_get_descriptors(uref1, &amp;<br>v1, event); int err2 = uref_ts_event_get_descriptors(uref2, &amp;<br>v2, event); if (!ubase_check(err1) &amp;&amp; !ubase_check(err2<br>)) return 0; if (!ubase_check(err1) || !ubase_check(err2)) return<br> -1; return v1 - v2; }</span></span></td></tr>
+<tr><td class="num" id="LN49">49</td><td class="line">        <span class='macro'>number of event descriptors, uint64_t event, event)<span class='expansion'>static inline int uref_ts_event_get_descriptors(struct uref *<br>uref, uint64_t *p, uint64_t event) { return uref_attr_get_unsigned_va<br>(uref, p, UDICT_TYPE_UNSIGNED, "te.descs[%""l" "u""]", event)<br>; } static inline int uref_ts_event_set_descriptors(struct uref<br> *uref, uint64_t v, uint64_t event) { return uref_attr_set_unsigned_va<br>(uref, v, UDICT_TYPE_UNSIGNED, "te.descs[%""l" "u""]", event)<br>; } static inline int uref_ts_event_delete_descriptors(struct<br> uref *uref, uint64_t event){ return uref_attr_delete_va(uref<br>, UDICT_TYPE_UNSIGNED, "te.descs[%""l" "u""]", event); } static<br> inline int uref_ts_event_match_descriptors(struct uref *uref<br>, uint8_t min, uint8_t max, uint64_t event) { uint64_t v; do {<br> int ubase_err_tmp = uref_ts_event_get_descriptors(uref, &amp;<br>v, event); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) return ubase_err_tmp; } while (0);; return (v &gt;= min<br>) &amp;&amp; (v &lt;= max) ? UBASE_ERR_NONE : UBASE_ERR_INVALID<br>; } static inline int uref_ts_event_cmp_descriptors(struct uref<br> *uref1, struct uref *uref2, uint64_t event) { uint64_t v1 = 0<br>, v2 = 0; int err1 = uref_ts_event_get_descriptors(uref1, &amp;<br>v1, event); int err2 = uref_ts_event_get_descriptors(uref2, &amp;<br>v2, event); if (!ubase_check(err1) &amp;&amp; !ubase_check(err2<br>)) return 0; if (!ubase_check(err1) || !ubase_check(err2)) return<br> -1; return v1 - v2; }</span></span></td></tr>
+<tr><td class="num" id="LN50">50</td><td class="line"><span class='macro'>UREF_TS_ATTR_SUBDESCRIPTOR(ts_event, descriptor,<span class='expansion'>static inline int uref_ts_event_get_descriptor(struct uref *uref<br>, const uint8_t **p, size_t *size_p, uint64_t sub, uint64_t nb<br>) { struct udict_opaque opaque; int err = uref_attr_get_opaque_va<br>(uref, &amp;opaque, UDICT_TYPE_OPAQUE, "te.desc[%""l" "u""][%"<br>"l" "u""]", sub, nb); if (ubase_check(err)) { *p = opaque.v; *<br>size_p = opaque.size; } return err; } static inline int uref_ts_event_set_descriptor<br>(struct uref *uref, const uint8_t *v, size_t size, uint64_t sub<br>, uint64_t nb) { struct udict_opaque opaque; opaque.v = v; opaque<br>.size = size; return uref_attr_set_opaque_va(uref, opaque, UDICT_TYPE_OPAQUE<br>, "te.desc[%""l" "u""][%""l" "u""]", sub, nb); } static inline<br> int uref_ts_event_delete_descriptor(struct uref *uref, uint64_t<br> sub, uint64_t nb) { return uref_attr_delete_va(uref, UDICT_TYPE_OPAQUE<br>, "te.desc[%""l" "u""][%""l" "u""]", sub, nb); } static inline<br> int uref_ts_event_add_descriptor(struct uref *uref, const uint8_t<br> *desc, size_t desc_len, uint64_t sub) { uint64_t descriptors<br> = 0; uref_ts_event_get_descriptors(uref, &amp;descriptors, sub<br>); do { int ubase_err_tmp = uref_ts_event_set_descriptors(uref<br>, descriptors + 1, sub); if (__builtin_expect(!!(!ubase_check<br>(ubase_err_tmp)),0)) return ubase_err_tmp; } while (0); do { int<br> ubase_err_tmp = uref_ts_event_set_descriptor(uref, desc, desc_len<br>, sub, descriptors); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) return ubase_err_tmp; } while (0); return UBASE_ERR_NONE<br>; } static inline size_t uref_ts_event_size_descriptors(struct<br> uref *uref, uint64_t sub) { uint64_t descriptors = 0; uref_ts_event_get_descriptors<br>(uref, &amp;descriptors, sub); size_t descs_len = 0; for (uint64_t<br> j = 0; j &lt; descriptors; j++) { const uint8_t *desc; size_t<br> desc_len; if (ubase_check(uref_ts_event_get_descriptor(uref,<br> &amp;desc, &amp;desc_len, sub, j))) descs_len += desc_len; }<br> return descs_len; } static inline void uref_ts_event_extract_descriptors<br>(struct uref *uref, uint8_t *descs_p, uint64_t sub) { uint64_t<br> descriptors = 0; uref_ts_event_get_descriptors(uref, &amp;descriptors<br>, sub); for (uint64_t j = 0; j &lt; descriptors; j++) { const<br> uint8_t *desc; size_t desc_len; if (ubase_check(uref_ts_event_get_descriptor<br>(uref, &amp;desc, &amp;desc_len, sub, j))) { memcpy(descs_p, desc<br>, desc_len); descs_p += desc_len; } } } static inline int uref_ts_event_compare_descriptors<br>(struct uref *uref1, struct uref *uref2, uint64_t sub) { size_t<br> size1 = uref_ts_event_size_descriptors(uref1, sub); size_t size2<br> = uref_ts_event_size_descriptors(uref2, sub); if (size1 != size2<br>) return size2 - size1; uint8_t descriptors1[size1]; uref_ts_event_extract_descriptors<br>(uref1, descriptors1, sub); uint8_t descriptors2[size1]; uref_ts_event_extract_descriptors<br>(uref2, descriptors1, sub); return memcmp(descriptors1, descriptors2<br>, size1); }</span></span></td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path1" class="msg msgControl" style="margin-left:1ex; max-width:100em"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">1</div></td><td>Within the expansion of the macro 'UREF_TS_ATTR_SUBDESCRIPTOR':
+</td><td><div class="PathNav"><a href="#EndPath" title="Next event (2)">&#x2192;</a></div></td></tr></table><div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">a</div></td><td valign="top">Calling 'uref_ts_event_size_descriptors'</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">b</div></td><td valign="top">Returning from 'uref_ts_event_size_descriptors'</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">c</div></td><td valign="top">'size1' initialized to 0</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">d</div></td><td valign="top">Assuming 'size1' is equal to 'size2'</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">e</div></td><td valign="top">Declared variable-length array (VLA) has zero size</td></tr></table></div>
+</div></td></tr>
+<tr><td class="num"></td><td class="line"><div id="EndPath" class="msg msgControl" style="margin-left:1ex; max-width:100em"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">2</div></td><td><div class="PathNav"><a href="#Path1" title="Previous event (1)">&#x2190;</a></div></td></td><td>Within the expansion of the macro 'UREF_TS_ATTR_SUBDESCRIPTOR':
+</td></tr></table><div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">a</div></td><td valign="top">Calling 'uref_ts_event_get_descriptors'</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">b</div></td><td valign="top">Returning from 'uref_ts_event_get_descriptors'</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">c</div></td><td valign="top">'descs_len' initialized to 0</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">d</div></td><td valign="top">Assuming 'j' is &gt;= 'descriptors'</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">e</div></td><td valign="top">Returning zero (loaded from 'descs_len')</td></tr></table></div>
+</div></td></tr>
+<tr><td class="num" id="LN51">51</td><td class="line">        <span class='string_literal'><span class='macro'>"te.desc[%"</span>PRIu64<span class='string_literal'>"][%"</span>PRIu64<span class='string_literal'>"]"</span>)<span class='expansion'>static inline int uref_ts_event_get_descriptor(struct uref *uref<br>, const uint8_t **p, size_t *size_p, uint64_t sub, uint64_t nb<br>) { struct udict_opaque opaque; int err = uref_attr_get_opaque_va<br>(uref, &amp;opaque, UDICT_TYPE_OPAQUE, "te.desc[%""l" "u""][%"<br>"l" "u""]", sub, nb); if (ubase_check(err)) { *p = opaque.v; *<br>size_p = opaque.size; } return err; } static inline int uref_ts_event_set_descriptor<br>(struct uref *uref, const uint8_t *v, size_t size, uint64_t sub<br>, uint64_t nb) { struct udict_opaque opaque; opaque.v = v; opaque<br>.size = size; return uref_attr_set_opaque_va(uref, opaque, UDICT_TYPE_OPAQUE<br>, "te.desc[%""l" "u""][%""l" "u""]", sub, nb); } static inline<br> int uref_ts_event_delete_descriptor(struct uref *uref, uint64_t<br> sub, uint64_t nb) { return uref_attr_delete_va(uref, UDICT_TYPE_OPAQUE<br>, "te.desc[%""l" "u""][%""l" "u""]", sub, nb); } static inline<br> int uref_ts_event_add_descriptor(struct uref *uref, const uint8_t<br> *desc, size_t desc_len, uint64_t sub) { uint64_t descriptors<br> = 0; uref_ts_event_get_descriptors(uref, &amp;descriptors, sub<br>); do { int ubase_err_tmp = uref_ts_event_set_descriptors(uref<br>, descriptors + 1, sub); if (__builtin_expect(!!(!ubase_check<br>(ubase_err_tmp)),0)) return ubase_err_tmp; } while (0); do { int<br> ubase_err_tmp = uref_ts_event_set_descriptor(uref, desc, desc_len<br>, sub, descriptors); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) return ubase_err_tmp; } while (0); return UBASE_ERR_NONE<br>; } static inline size_t uref_ts_event_size_descriptors(struct<br> uref *uref, uint64_t sub) { uint64_t descriptors = 0; uref_ts_event_get_descriptors<br>(uref, &amp;descriptors, sub); size_t descs_len = 0; for (uint64_t<br> j = 0; j &lt; descriptors; j++) { const uint8_t *desc; size_t<br> desc_len; if (ubase_check(uref_ts_event_get_descriptor(uref,<br> &amp;desc, &amp;desc_len, sub, j))) descs_len += desc_len; }<br> return descs_len; } static inline void uref_ts_event_extract_descriptors<br>(struct uref *uref, uint8_t *descs_p, uint64_t sub) { uint64_t<br> descriptors = 0; uref_ts_event_get_descriptors(uref, &amp;descriptors<br>, sub); for (uint64_t j = 0; j &lt; descriptors; j++) { const<br> uint8_t *desc; size_t desc_len; if (ubase_check(uref_ts_event_get_descriptor<br>(uref, &amp;desc, &amp;desc_len, sub, j))) { memcpy(descs_p, desc<br>, desc_len); descs_p += desc_len; } } } static inline int uref_ts_event_compare_descriptors<br>(struct uref *uref1, struct uref *uref2, uint64_t sub) { size_t<br> size1 = uref_ts_event_size_descriptors(uref1, sub); size_t size2<br> = uref_ts_event_size_descriptors(uref2, sub); if (size1 != size2<br>) return size2 - size1; uint8_t descriptors1[size1]; uref_ts_event_extract_descriptors<br>(uref1, descriptors1, sub); uint8_t descriptors2[size1]; uref_ts_event_extract_descriptors<br>(uref2, descriptors1, sub); return memcmp(descriptors1, descriptors2<br>, size1); }</span></span></td></tr>
+<tr><td class="num" id="LN52">52</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN53">53</td><td class="line"><span class='directive'>#ifdef __cplusplus</span></td></tr>
+<tr><td class="num" id="LN54">54</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN55">55</td><td class="line"><span class='directive'>#endif</span></td></tr>
+<tr><td class="num" id="LN56">56</td><td class="line"><span class='directive'>#endif</span></td></tr>
+</table></body></html>

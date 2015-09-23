@@ -1,0 +1,835 @@
+<!doctype html>
+<html>
+<head>
+<title>upipe_sws.c</title>
+<style type="text/css">
+ body { color:#000000; background-color:#ffffff }
+ body { font-family:Helvetica, sans-serif; font-size:10pt }
+ h1 { font-size:14pt }
+ .code { border-collapse:collapse; width:100%; }
+ .code { font-family: "Monospace", monospace; font-size:10pt }
+ .code { line-height: 1.2em }
+ .comment { color: green; font-style: oblique }
+ .keyword { color: blue }
+ .string_literal { color: red }
+ .directive { color: darkmagenta }
+ .expansion { display: none; }
+ .macro:hover .expansion { display: block; border: 2px solid #FF0000; padding: 2px; background-color:#FFF0F0; font-weight: normal;   -webkit-border-radius:5px;  -webkit-box-shadow:1px 1px 7px #000; position: absolute; top: -1em; left:10em; z-index: 1 } 
+ .macro { color: darkmagenta; background-color:LemonChiffon; position: relative }
+ .num { width:2.5em; padding-right:2ex; background-color:#eeeeee }
+ .num { text-align:right; font-size:8pt }
+ .num { color:#444444 }
+ .line { padding-left: 1ex; border-left: 3px solid #ccc }
+ .line { white-space: pre }
+ .msg { -webkit-box-shadow:1px 1px 7px #000 }
+ .msg { -webkit-border-radius:5px }
+ .msg { font-family:Helvetica, sans-serif; font-size:8pt }
+ .msg { float:left }
+ .msg { padding:0.25em 1ex 0.25em 1ex }
+ .msg { margin-top:10px; margin-bottom:10px }
+ .msg { font-weight:bold }
+ .msg { max-width:60em; word-wrap: break-word; white-space: pre-wrap }
+ .msgT { padding:0x; spacing:0x }
+ .msgEvent { background-color:#fff8b4; color:#000000 }
+ .msgControl { background-color:#bbbbbb; color:#000000 }
+ .mrange { background-color:#dfddf3 }
+ .mrange { border-bottom:1px solid #6F9DBE }
+ .PathIndex { font-weight: bold; padding:0px 5px; margin-right:5px; }
+ .PathIndex { -webkit-border-radius:8px }
+ .PathIndexEvent { background-color:#bfba87 }
+ .PathIndexControl { background-color:#8c8c8c }
+ .PathNav a { text-decoration:none; font-size: larger }
+ .CodeInsertionHint { font-weight: bold; background-color: #10dd10 }
+ .CodeRemovalHint { background-color:#de1010 }
+ .CodeRemovalHint { border-bottom:1px solid #6F9DBE }
+ table.simpletable {
+   padding: 5px;
+   font-size:12pt;
+   margin:20px;
+   border-collapse: collapse; border-spacing: 0px;
+ }
+ td.rowname {
+   text-align:right; font-weight:bold; color:#444444;
+   padding-right:2ex; }
+</style>
+</head>
+<body>
+<!-- BUGDESC Use of memory after it is freed -->
+
+<!-- BUGTYPE Use-after-free -->
+
+<!-- BUGCATEGORY Memory Error -->
+
+<!-- BUGFILE /home/nitro/upipe/lib/upipe-swscale/upipe_sws.c -->
+
+<!-- FILENAME upipe_sws.c -->
+
+<!-- FUNCTIONNAME upipe_sws_alloc -->
+
+<!-- BUGLINE 678 -->
+
+<!-- BUGCOLUMN 13 -->
+
+<!-- BUGPATHLENGTH 13 -->
+
+<!-- BUGMETAEND -->
+<!-- REPORTHEADER -->
+<h3>Bug Summary</h3>
+<table class="simpletable">
+<tr><td class="rowname">File:</td><td>lib/upipe-swscale/upipe_sws.c</td></tr>
+<tr><td class="rowname">Location:</td><td><a href="#EndPath">line 678, column 13</a></td></tr>
+<tr><td class="rowname">Description:</td><td>Use of memory after it is freed</td></tr>
+</table>
+<!-- REPORTSUMMARYEXTRA -->
+<h3>Annotated Source Code</h3>
+<table class="code">
+<tr><td class="num" id="LN1">1</td><td class="line"><span class='comment'>/*</span></td></tr>
+<tr><td class="num" id="LN2">2</td><td class="line"> <span class='comment'>* Copyright (C) 2012-2015 OpenHeadend S.A.R.L.</span></td></tr>
+<tr><td class="num" id="LN3">3</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN4">4</td><td class="line"> <span class='comment'>* Authors: Benjamin Cohen</span></td></tr>
+<tr><td class="num" id="LN5">5</td><td class="line"> <span class='comment'>*          Christophe Massiot</span></td></tr>
+<tr><td class="num" id="LN6">6</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN7">7</td><td class="line"> <span class='comment'>* Permission is hereby granted, free of charge, to any person obtaining</span></td></tr>
+<tr><td class="num" id="LN8">8</td><td class="line"> <span class='comment'>* a copy of this software and associated documentation files (the</span></td></tr>
+<tr><td class="num" id="LN9">9</td><td class="line"> <span class='comment'>* "Software"), to deal in the Software without restriction, including</span></td></tr>
+<tr><td class="num" id="LN10">10</td><td class="line"> <span class='comment'>* without limitation the rights to use, copy, modify, merge, publish,</span></td></tr>
+<tr><td class="num" id="LN11">11</td><td class="line"> <span class='comment'>* distribute, sublicense, and/or sell copies of the Software, and to</span></td></tr>
+<tr><td class="num" id="LN12">12</td><td class="line"> <span class='comment'>* permit persons to whom the Software is furnished to do so, subject</span></td></tr>
+<tr><td class="num" id="LN13">13</td><td class="line"> <span class='comment'>* to the following conditions:</span></td></tr>
+<tr><td class="num" id="LN14">14</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN15">15</td><td class="line"> <span class='comment'>* The above copyright notice and this permission notice shall be</span></td></tr>
+<tr><td class="num" id="LN16">16</td><td class="line"> <span class='comment'>* included in all copies or substantial portions of the Software.</span></td></tr>
+<tr><td class="num" id="LN17">17</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN18">18</td><td class="line"> <span class='comment'>* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,</span></td></tr>
+<tr><td class="num" id="LN19">19</td><td class="line"> <span class='comment'>* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF</span></td></tr>
+<tr><td class="num" id="LN20">20</td><td class="line"> <span class='comment'>* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.</span></td></tr>
+<tr><td class="num" id="LN21">21</td><td class="line"> <span class='comment'>* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY</span></td></tr>
+<tr><td class="num" id="LN22">22</td><td class="line"> <span class='comment'>* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,</span></td></tr>
+<tr><td class="num" id="LN23">23</td><td class="line"> <span class='comment'>* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE</span></td></tr>
+<tr><td class="num" id="LN24">24</td><td class="line"> <span class='comment'>* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span></td></tr>
+<tr><td class="num" id="LN25">25</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN26">26</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN27">27</td><td class="line"><span class='comment'>/** @file</span></td></tr>
+<tr><td class="num" id="LN28">28</td><td class="line"> <span class='comment'>* @short Upipe swscale (ffmpeg) module</span></td></tr>
+<tr><td class="num" id="LN29">29</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN30">30</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN31">31</td><td class="line"><span class='directive'>#include &lt;upipe/ubase.h&gt;</span></td></tr>
+<tr><td class="num" id="LN32">32</td><td class="line"><span class='directive'>#include &lt;upipe/uprobe.h&gt;</span></td></tr>
+<tr><td class="num" id="LN33">33</td><td class="line"><span class='directive'>#include &lt;upipe/uref.h&gt;</span></td></tr>
+<tr><td class="num" id="LN34">34</td><td class="line"><span class='directive'>#include &lt;upipe/ubuf.h&gt;</span></td></tr>
+<tr><td class="num" id="LN35">35</td><td class="line"><span class='directive'>#include &lt;upipe/uref_pic_flow.h&gt;</span></td></tr>
+<tr><td class="num" id="LN36">36</td><td class="line"><span class='directive'>#include &lt;upipe/uref_pic.h&gt;</span></td></tr>
+<tr><td class="num" id="LN37">37</td><td class="line"><span class='directive'>#include &lt;upipe/upipe.h&gt;</span></td></tr>
+<tr><td class="num" id="LN38">38</td><td class="line"><span class='directive'>#include &lt;upipe/uref_flow.h&gt;</span></td></tr>
+<tr><td class="num" id="LN39">39</td><td class="line"><span class='directive'>#include &lt;upipe/uref_dump.h&gt;</span></td></tr>
+<tr><td class="num" id="LN40">40</td><td class="line"><span class='directive'>#include &lt;upipe/upipe_helper_upipe.h&gt;</span></td></tr>
+<tr><td class="num" id="LN41">41</td><td class="line"><span class='directive'>#include &lt;upipe/upipe_helper_urefcount.h&gt;</span></td></tr>
+<tr><td class="num" id="LN42">42</td><td class="line"><span class='directive'>#include &lt;upipe/upipe_helper_flow.h&gt;</span></td></tr>
+<tr><td class="num" id="LN43">43</td><td class="line"><span class='directive'>#include &lt;upipe/upipe_helper_flow_def.h&gt;</span></td></tr>
+<tr><td class="num" id="LN44">44</td><td class="line"><span class='directive'>#include &lt;upipe/upipe_helper_ubuf_mgr.h&gt;</span></td></tr>
+<tr><td class="num" id="LN45">45</td><td class="line"><span class='directive'>#include &lt;upipe/upipe_helper_output.h&gt;</span></td></tr>
+<tr><td class="num" id="LN46">46</td><td class="line"><span class='directive'>#include &lt;upipe/upipe_helper_input.h&gt;</span></td></tr>
+<tr><td class="num" id="LN47">47</td><td class="line"><span class='directive'>#include &lt;upipe-swscale/upipe_sws.h&gt;</span></td></tr>
+<tr><td class="num" id="LN48">48</td><td class="line"><span class='directive'>#include &lt;upipe-av/upipe_av_pixfmt.h&gt;</span></td></tr>
+<tr><td class="num" id="LN49">49</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN50">50</td><td class="line"><span class='directive'>#include &lt;stdlib.h&gt;</span></td></tr>
+<tr><td class="num" id="LN51">51</td><td class="line"><span class='directive'>#include &lt;stdbool.h&gt;</span></td></tr>
+<tr><td class="num" id="LN52">52</td><td class="line"><span class='directive'>#include &lt;stdint.h&gt;</span></td></tr>
+<tr><td class="num" id="LN53">53</td><td class="line"><span class='directive'>#include &lt;stdarg.h&gt;</span></td></tr>
+<tr><td class="num" id="LN54">54</td><td class="line"><span class='directive'>#include &lt;string.h&gt;</span></td></tr>
+<tr><td class="num" id="LN55">55</td><td class="line"><span class='directive'>#include &lt;unistd.h&gt;</span></td></tr>
+<tr><td class="num" id="LN56">56</td><td class="line"><span class='directive'>#include &lt;<span class='macro'>errno<span class='expansion'>(*__errno_location ())</span></span>.h&gt;</span></td></tr>
+<tr><td class="num" id="LN57">57</td><td class="line"><span class='directive'>#include &lt;assert.h&gt;</span></td></tr>
+<tr><td class="num" id="LN58">58</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN59">59</td><td class="line"><span class='directive'>#include &lt;libavutil/opt.h&gt;</span></td></tr>
+<tr><td class="num" id="LN60">60</td><td class="line"><span class='directive'>#include &lt;libswscale/swscale.h&gt;</span></td></tr>
+<tr><td class="num" id="LN61">61</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN62">62</td><td class="line"><span class='comment'>/** @hidden */</span></td></tr>
+<tr><td class="num" id="LN63">63</td><td class="line"><span class='keyword'>static</span> <span class='macro'>bool<span class='expansion'>_Bool</span></span> upipe_sws_handle(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>struct</span> uref *uref,</td></tr>
+<tr><td class="num" id="LN64">64</td><td class="line">                             <span class='keyword'>struct</span> upump **upump_p);</td></tr>
+<tr><td class="num" id="LN65">65</td><td class="line"><span class='comment'>/** @hidden */</span></td></tr>
+<tr><td class="num" id="LN66">66</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> upipe_sws_check(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>struct</span> uref *flow_format);</td></tr>
+<tr><td class="num" id="LN67">67</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN68">68</td><td class="line"><span class='comment'>/** upipe_sws structure with swscale parameters */</span></td></tr>
+<tr><td class="num" id="LN69">69</td><td class="line"><span class='keyword'>struct</span> upipe_sws {</td></tr>
+<tr><td class="num" id="LN70">70</td><td class="line">    <span class='comment'>/** refcount management structure */</span></td></tr>
+<tr><td class="num" id="LN71">71</td><td class="line">    <span class='keyword'>struct</span> urefcount urefcount;</td></tr>
+<tr><td class="num" id="LN72">72</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN73">73</td><td class="line">    <span class='comment'>/** input flow */</span></td></tr>
+<tr><td class="num" id="LN74">74</td><td class="line">    <span class='keyword'>struct</span> uref *flow_def_input;</td></tr>
+<tr><td class="num" id="LN75">75</td><td class="line">    <span class='comment'>/** attributes added by the pipe */</span></td></tr>
+<tr><td class="num" id="LN76">76</td><td class="line">    <span class='keyword'>struct</span> uref *flow_def_attr;</td></tr>
+<tr><td class="num" id="LN77">77</td><td class="line">    <span class='comment'>/** output pipe */</span></td></tr>
+<tr><td class="num" id="LN78">78</td><td class="line">    <span class='keyword'>struct</span> upipe *output;</td></tr>
+<tr><td class="num" id="LN79">79</td><td class="line">    <span class='comment'>/** output flow */</span></td></tr>
+<tr><td class="num" id="LN80">80</td><td class="line">    <span class='keyword'>struct</span> uref *flow_def;</td></tr>
+<tr><td class="num" id="LN81">81</td><td class="line">    <span class='comment'>/** output state */</span></td></tr>
+<tr><td class="num" id="LN82">82</td><td class="line">    <span class='keyword'>enum</span> upipe_helper_output_state output_state;</td></tr>
+<tr><td class="num" id="LN83">83</td><td class="line">    <span class='comment'>/** list of output requests */</span></td></tr>
+<tr><td class="num" id="LN84">84</td><td class="line">    <span class='keyword'>struct</span> uchain request_list;</td></tr>
+<tr><td class="num" id="LN85">85</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN86">86</td><td class="line">    <span class='comment'>/** ubuf manager */</span></td></tr>
+<tr><td class="num" id="LN87">87</td><td class="line">    <span class='keyword'>struct</span> ubuf_mgr *ubuf_mgr;</td></tr>
+<tr><td class="num" id="LN88">88</td><td class="line">    <span class='comment'>/** flow format packet */</span></td></tr>
+<tr><td class="num" id="LN89">89</td><td class="line">    <span class='keyword'>struct</span> uref *flow_format;</td></tr>
+<tr><td class="num" id="LN90">90</td><td class="line">    <span class='comment'>/** ubuf manager request */</span></td></tr>
+<tr><td class="num" id="LN91">91</td><td class="line">    <span class='keyword'>struct</span> urequest ubuf_mgr_request;</td></tr>
+<tr><td class="num" id="LN92">92</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN93">93</td><td class="line">    <span class='comment'>/** temporary uref storage (used during urequest) */</span></td></tr>
+<tr><td class="num" id="LN94">94</td><td class="line">    <span class='keyword'>struct</span> uchain urefs;</td></tr>
+<tr><td class="num" id="LN95">95</td><td class="line">    <span class='comment'>/** nb urefs in storage */</span></td></tr>
+<tr><td class="num" id="LN96">96</td><td class="line">    <span class='keyword'>unsigned</span> <span class='keyword'>int</span> nb_urefs;</td></tr>
+<tr><td class="num" id="LN97">97</td><td class="line">    <span class='comment'>/** max urefs in storage */</span></td></tr>
+<tr><td class="num" id="LN98">98</td><td class="line">    <span class='keyword'>unsigned</span> <span class='keyword'>int</span> max_urefs;</td></tr>
+<tr><td class="num" id="LN99">99</td><td class="line">    <span class='comment'>/** list of blockers (used during udeal) */</span></td></tr>
+<tr><td class="num" id="LN100">100</td><td class="line">    <span class='keyword'>struct</span> uchain blockers;</td></tr>
+<tr><td class="num" id="LN101">101</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN102">102</td><td class="line">    <span class='comment'>/** swscale flags */</span></td></tr>
+<tr><td class="num" id="LN103">103</td><td class="line">    <span class='keyword'>int</span> flags;</td></tr>
+<tr><td class="num" id="LN104">104</td><td class="line">    <span class='comment'>/** swscale image conversion context [0] for progressive, [1,2] interlaced */</span></td></tr>
+<tr><td class="num" id="LN105">105</td><td class="line">    <span class='keyword'>struct</span> SwsContext *convert_ctx[3];</td></tr>
+<tr><td class="num" id="LN106">106</td><td class="line">    <span class='comment'>/** input pixel format */</span></td></tr>
+<tr><td class="num" id="LN107">107</td><td class="line">    <span class='keyword'>enum</span> <span class='macro'>PixelFormat<span class='expansion'>AVPixelFormat</span></span> input_pix_fmt;</td></tr>
+<tr><td class="num" id="LN108">108</td><td class="line">    <span class='comment'>/** requested output pixel format */</span></td></tr>
+<tr><td class="num" id="LN109">109</td><td class="line">    <span class='keyword'>enum</span> <span class='macro'>PixelFormat<span class='expansion'>AVPixelFormat</span></span> output_pix_fmt;</td></tr>
+<tr><td class="num" id="LN110">110</td><td class="line">    <span class='comment'>/** input chroma map */</span></td></tr>
+<tr><td class="num" id="LN111">111</td><td class="line">    <span class='keyword'>const</span> <span class='keyword'>char</span> *input_chroma_map[<span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span>];</td></tr>
+<tr><td class="num" id="LN112">112</td><td class="line">    <span class='comment'>/** output chroma map */</span></td></tr>
+<tr><td class="num" id="LN113">113</td><td class="line">    <span class='keyword'>const</span> <span class='keyword'>char</span> *output_chroma_map[<span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span>];</td></tr>
+<tr><td class="num" id="LN114">114</td><td class="line">    <span class='comment'>/** input colorspace */</span></td></tr>
+<tr><td class="num" id="LN115">115</td><td class="line">    <span class='keyword'>int</span> input_colorspace;</td></tr>
+<tr><td class="num" id="LN116">116</td><td class="line">    <span class='comment'>/** output colorspace */</span></td></tr>
+<tr><td class="num" id="LN117">117</td><td class="line">    <span class='keyword'>int</span> output_colorspace;</td></tr>
+<tr><td class="num" id="LN118">118</td><td class="line">    <span class='comment'>/** input color range */</span></td></tr>
+<tr><td class="num" id="LN119">119</td><td class="line">    <span class='keyword'>int</span> input_color_range;</td></tr>
+<tr><td class="num" id="LN120">120</td><td class="line">    <span class='comment'>/** output color range */</span></td></tr>
+<tr><td class="num" id="LN121">121</td><td class="line">    <span class='keyword'>int</span> output_color_range;</td></tr>
+<tr><td class="num" id="LN122">122</td><td class="line">    <span class='comment'>/** true if the we already tried to set the colorspace, but failed at it */</span></td></tr>
+<tr><td class="num" id="LN123">123</td><td class="line">    <span class='macro'>bool<span class='expansion'>_Bool</span></span> colorspace_invalid;</td></tr>
+<tr><td class="num" id="LN124">124</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN125">125</td><td class="line">    <span class='comment'>/** public upipe structure */</span></td></tr>
+<tr><td class="num" id="LN126">126</td><td class="line">    <span class='keyword'>struct</span> upipe upipe;</td></tr>
+<tr><td class="num" id="LN127">127</td><td class="line">};</td></tr>
+<tr><td class="num" id="LN128">128</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN129">129</td><td class="line"><span class='macro'>UPIPE_HELPER_UPIPE(upipe_sws, upipe, UPIPE_SWS_SIGNATURE)<span class='expansion'>static __attribute__ ((unused)) inline struct upipe * upipe_sws_to_upipe<br>(struct upipe_sws *s) { return &amp;s-&gt;upipe; } static __attribute__<br> ((unused)) inline struct upipe_sws * upipe_sws_from_upipe(struct<br> upipe *upipe) { ((upipe-&gt;mgr-&gt;signature == (((uint32_t<br>)'s') | (((uint32_t)'w') &lt;&lt; 8) | (((uint32_t)'s') &lt;&lt;<br> 16) | (((uint32_t)' ') &lt;&lt; 24))) ? (void) (0) : __assert_fail<br> ("upipe-&gt;mgr-&gt;signature == (((uint32_t)'s') | (((uint32_t)'w') &lt;&lt; 8) | (((uint32_t)'s') &lt;&lt; 16) | (((uint32_t)' ') &lt;&lt; 24))"<br>, "upipe_sws.c", 129, __PRETTY_FUNCTION__)); return ({ const typeof<br>( ((struct upipe_sws *)0)-&gt;upipe ) *_mptr = (upipe); (struct<br> upipe_sws *)( (char *)_mptr - __builtin_offsetof(struct upipe_sws<br>, upipe) );}); }</span></span>;</td></tr>
+<tr><td class="num" id="LN130">130</td><td class="line"><span class='macro'>UPIPE_HELPER_UREFCOUNT(upipe_sws, urefcount, upipe_sws_free)<span class='expansion'>static __attribute__ ((unused)) inline struct urefcount * upipe_sws_to_urefcount<br>(struct upipe_sws *s) { return &amp;s-&gt;urefcount; } static<br> __attribute__ ((unused)) inline struct upipe_sws * upipe_sws_from_urefcount<br>(struct urefcount *sub) { return ({ const typeof( ((struct upipe_sws<br> *)0)-&gt;urefcount ) *_mptr = (sub); (struct upipe_sws *)( (<br>char *)_mptr - __builtin_offsetof(struct upipe_sws, urefcount<br>) );}); } static void upipe_sws_free(struct upipe *upipe); static<br> void upipe_sws_dead_urefcount(struct urefcount *urefcount) {<br> struct upipe_sws *s = upipe_sws_from_urefcount(urefcount); upipe_sws_free<br>(upipe_sws_to_upipe(s)); } static void upipe_sws_init_urefcount<br>(struct upipe *upipe) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); urefcount_init(&amp;s-&gt;urefcount, upipe_sws_dead_urefcount<br>); upipe-&gt;refcount = upipe_sws_to_urefcount(s); } static void<br> upipe_sws_clean_urefcount(struct upipe *upipe) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); urefcount_clean(&amp;s-&gt;<br>urefcount); }</span></span></td></tr>
+<tr><td class="num" id="LN131">131</td><td class="line"><span class='macro'>UPIPE_HELPER_FLOW(upipe_sws, <span class='string_literal'>"pic."</span>)<span class='expansion'>static struct upipe *upipe_sws_alloc_flow(struct upipe_mgr *mgr<br>, struct uprobe *uprobe, uint32_t signature, va_list args, struct<br> uref **flow_def_p) { if (signature != (((uint32_t)'f') | (((<br>uint32_t)'l') &lt;&lt; 8) | (((uint32_t)'o') &lt;&lt; 16) | (<br>((uint32_t)'w') &lt;&lt; 24))) { uprobe_release(uprobe); return<br> ((void*)0); } if ("pic." != ((void*)0) || flow_def_p != ((void<br>*)0)) { struct uref *flow_def = __builtin_va_arg(args, struct<br> uref *); if (__builtin_expect(!!(flow_def == ((void*)0)),0))<br> { uprobe_release(uprobe); return ((void*)0); } if ("pic." !=<br> ((void*)0)) { const char *def; if (__builtin_expect(!!(!ubase_check<br>(uref_flow_get_def(flow_def, &amp;def)) || ubase_ncmp(def, "pic."<br>)),0)) { uprobe_release(uprobe); return ((void*)0); } } if (flow_def_p<br> != ((void*)0)) { *flow_def_p = uref_dup(flow_def); if (__builtin_expect<br>(!!(*flow_def_p == ((void*)0)),0)) { uprobe_release(uprobe); return<br> ((void*)0); } } } struct upipe_sws *s = (struct upipe_sws *)<br>malloc(sizeof(struct upipe_sws)); if (__builtin_expect(!!(s ==<br> ((void*)0)),0)) { if (flow_def_p != ((void*)0)) uref_free(*flow_def_p<br>); uprobe_release(uprobe); return ((void*)0); } struct upipe *<br>upipe = upipe_sws_to_upipe(s); upipe_init(upipe, mgr, uprobe)<br>; return upipe; } static void upipe_sws_free_flow(struct upipe<br> *upipe) { struct upipe_sws *s = upipe_sws_from_upipe(upipe);<br> upipe_clean(upipe); free(s); }</span></span>;</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path2" class="msg msgControl" style="margin-left:1ex; max-width:100em"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">2</div></td><td><div class="PathNav"><a href="#Path1" title="Previous event (1)">&#x2190;</a></div></td></td><td>Within the expansion of the macro 'UPIPE_HELPER_FLOW':
+</td><td><div class="PathNav"><a href="#Path3" title="Next event (3)">&#x2192;</a></div></td></tr></table><div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">a</div></td><td valign="top">Assuming 'flow_def' is not equal to null</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">b</div></td><td valign="top">Memory is allocated</td></tr></table></div>
+<div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">c</div></td><td valign="top">Assuming 's' is not equal to null</td></tr></table></div>
+</div></td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path9" class="msg msgControl" style="margin-left:1ex; max-width:100em"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">9</div></td><td><div class="PathNav"><a href="#Path8" title="Previous event (8)">&#x2190;</a></div></td></td><td>Within the expansion of the macro 'UPIPE_HELPER_FLOW':
+</td><td><div class="PathNav"><a href="#Path10" title="Next event (10)">&#x2192;</a></div></td></tr></table><div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">a</div></td><td valign="top">Memory is released</td></tr></table></div>
+</div></td></tr>
+<tr><td class="num" id="LN132">132</td><td class="line"><span class='macro'>UPIPE_HELPER_OUTPUT(upipe_sws, output, flow_def, output_state, request_list)<span class='expansion'>static void upipe_sws_init_output(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); s-&gt;output = (<br>(void*)0); s-&gt;flow_def = ((void*)0); s-&gt;output_state = UPIPE_HELPER_OUTPUT_NONE<br>; ulist_init(&amp;s-&gt;request_list); } static __attribute__<br> ((unused)) void upipe_sws_output(struct upipe *upipe, struct<br> uref *uref, struct upump **upump_p) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ((s-&gt;flow_def != ((void*)0)) ? (void) (0) : __assert_fail<br> ("s-&gt;flow_def != ((void*)0)", "upipe_sws.c", 132, __PRETTY_FUNCTION__<br>)); if (__builtin_expect(!!(s-&gt;output == ((void*)0)),0)) upipe_throw_need_output<br>(upipe, s-&gt;flow_def); if (__builtin_expect(!!(s-&gt;output<br> == ((void*)0)),0)) { uref_free(uref); return; } _Bool already_retried<br> = 0; for ( ; ; ) { switch (s-&gt;output_state) { case UPIPE_HELPER_OUTPUT_NONE<br>: { if (__builtin_expect(!!(ubase_check(upipe_set_flow_def(s-&gt;<br>output, s-&gt;flow_def))),1)) { uprobe_log((s-&gt;output)-&gt;<br>uprobe, s-&gt;output, UPROBE_LOG_DEBUG, "accepted flow def");<br> s-&gt;output_state = UPIPE_HELPER_OUTPUT_VALID; continue; } uprobe_log<br>((s-&gt;output)-&gt;uprobe, s-&gt;output, UPROBE_LOG_DEBUG, "rejected flow def"<br>); struct upipe *output = s-&gt;output; upipe_throw_need_output<br>(upipe, s-&gt;flow_def); if (output == s-&gt;output || already_retried<br>) s-&gt;output_state = UPIPE_HELPER_OUTPUT_INVALID; else already_retried<br> = 1; continue; } case UPIPE_HELPER_OUTPUT_VALID: if (uref !=<br> ((void*)0)) upipe_input(s-&gt;output, uref, upump_p); return<br>; case UPIPE_HELPER_OUTPUT_INVALID: uprobe_log((upipe)-&gt;uprobe<br>, upipe, UPROBE_LOG_WARNING, "invalid output, dropping uref")<br>; uref_free(uref); return; } } } static int upipe_sws_register_output_request<br>(struct upipe *upipe, struct urequest *urequest) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); ulist_add(&amp;s-&gt;request_list<br>, urequest_to_uchain(urequest)); if (__builtin_expect(!!(s-&gt;<br>output != ((void*)0)),1)) return upipe_register_request(s-&gt;<br>output, urequest); return upipe_throw_provide_request(upipe, urequest<br>); } static int upipe_sws_unregister_output_request(struct upipe<br> *upipe, struct urequest *urequest) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ulist_delete(urequest_to_uchain(urequest)); if (__builtin_expect<br>(!!(s-&gt;output != ((void*)0)),1)) return upipe_unregister_request<br>(s-&gt;output, urequest); return UBASE_ERR_NONE; } static int<br> upipe_sws_provide_output_proxy(struct urequest *urequest, va_list<br> args) { struct urequest *upstream = (struct urequest *)(urequest<br>)-&gt;opaque; return urequest_provide_va(upstream, args); } static<br> int __attribute__ ((unused)) upipe_sws_alloc_output_proxy(struct<br> upipe *upipe, struct urequest *urequest) { struct urequest *<br>proxy = (struct urequest *)malloc(sizeof(struct urequest)); if<br> (__builtin_expect(!!(proxy == ((void*)0)),0)) return UBASE_ERR_ALLOC<br>;; urequest_set_opaque(proxy, urequest); struct uref *uref = (<br>(void*)0); if (urequest-&gt;uref != ((void*)0) &amp;&amp; (uref<br> = uref_dup(urequest-&gt;uref)) == ((void*)0)) { free(proxy);<br> return UBASE_ERR_ALLOC; } urequest_init(proxy, urequest-&gt;<br>type, uref, upipe_sws_provide_output_proxy, (urequest_free_func<br>)free); return upipe_sws_register_output_request(upipe, proxy<br>); } static int __attribute__ ((unused)) upipe_sws_free_output_proxy<br>(struct upipe *upipe, struct urequest *urequest) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); struct uchain *uchain, *uchain_tmp<br>; for ((uchain) = (&amp;s-&gt;request_list)-&gt;next, (uchain_tmp<br>) = (uchain)-&gt;next; (uchain) != (&amp;s-&gt;request_list);<br> (uchain) = (uchain_tmp), (uchain_tmp) = (uchain)-&gt;next) {<br> struct urequest *proxy = urequest_from_uchain(uchain); if ((<br>struct urequest *)(proxy)-&gt;opaque == urequest) { upipe_sws_unregister_output_request<br>(upipe, proxy); urequest_clean(proxy); urequest_free(proxy); return<br> UBASE_ERR_NONE; } } return UBASE_ERR_INVALID; } static void upipe_sws_store_flow_def<br>(struct upipe *upipe, struct uref *flow_def) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); if (s-&gt;flow_def != ((void<br>*)0) &amp;&amp; s-&gt;flow_def-&gt;udict != ((void*)0) &amp;&amp;<br> flow_def != ((void*)0) &amp;&amp; flow_def-&gt;udict != ((void<br>*)0) &amp;&amp; !udict_cmp(s-&gt;flow_def-&gt;udict, flow_def<br>-&gt;udict)) { uref_free(s-&gt;flow_def); s-&gt;flow_def = flow_def<br>; return; } if (__builtin_expect(!!(s-&gt;flow_def != ((void*<br>)0)),0)) uref_free(s-&gt;flow_def); s-&gt;output_state = UPIPE_HELPER_OUTPUT_NONE<br>; s-&gt;flow_def = flow_def; if (flow_def != ((void*)0)) upipe_throw_new_flow_def<br>(upipe, flow_def); } static int upipe_sws_get_flow_def(struct<br> upipe *upipe, struct uref **p) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ((p != ((void*)0)) ? (void) (0) : __assert_fail ("p != ((void*)0)"<br>, "upipe_sws.c", 132, __PRETTY_FUNCTION__)); *p = s-&gt;flow_def<br>; return UBASE_ERR_NONE; } static int upipe_sws_get_output(struct<br> upipe *upipe, struct upipe **p) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ((p != ((void*)0)) ? (void) (0) : __assert_fail ("p != ((void*)0)"<br>, "upipe_sws.c", 132, __PRETTY_FUNCTION__)); *p = s-&gt;output<br>; return UBASE_ERR_NONE; } static int upipe_sws_set_output(struct<br> upipe *upipe, struct upipe *output){ struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); if (__builtin_expect(!!(s-&gt;output != ((void*)0)),<br>1)) { struct uchain *uchain; for ((uchain) = (&amp;s-&gt;request_list<br>)-&gt;next; (uchain) != (&amp;s-&gt;request_list); (uchain) =<br> (uchain)-&gt;next) { struct urequest *urequest = urequest_from_uchain<br>(uchain); upipe_unregister_request(s-&gt;output, urequest); }<br> } upipe_release(s-&gt;output); s-&gt;output = upipe_use(output<br>); s-&gt;output_state = UPIPE_HELPER_OUTPUT_NONE; if (__builtin_expect<br>(!!(s-&gt;output != ((void*)0)),1)) { struct uchain *uchain; for<br> ((uchain) = (&amp;s-&gt;request_list)-&gt;next; (uchain) != (<br>&amp;s-&gt;request_list); (uchain) = (uchain)-&gt;next) { struct<br> urequest *urequest = urequest_from_uchain(uchain); upipe_register_request<br>(s-&gt;output, urequest); } } return UBASE_ERR_NONE; } static<br> void upipe_sws_clean_output(struct upipe *upipe) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); struct uchain *uchain; while<br> ((uchain = ulist_pop(&amp;s-&gt;request_list)) != ((void*)0)<br>) { struct urequest *urequest = urequest_from_uchain(uchain);<br> if (__builtin_expect(!!(s-&gt;output != ((void*)0)),1)) upipe_unregister_request<br>(s-&gt;output, urequest); urequest_clean(urequest); urequest_free<br>(urequest); } upipe_release(s-&gt;output); s-&gt;output = ((void<br>*)0); uref_free(s-&gt;flow_def); s-&gt;flow_def = ((void*)0);<br> }</span></span></td></tr>
+<tr><td class="num" id="LN133">133</td><td class="line"><span class='macro'>UPIPE_HELPER_FLOW_DEF(upipe_sws, flow_def_input, flow_def_attr)<span class='expansion'>static void upipe_sws_init_flow_def(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); s-&gt;flow_def_attr<br> = s-&gt;flow_def_input = ((void*)0); } static __attribute__ (<br>(unused)) struct uref * upipe_sws_alloc_flow_def_attr(struct upipe<br> *upipe) { struct upipe_sws *s = upipe_sws_from_upipe(upipe);<br> if (s-&gt;flow_def_input == ((void*)0)) return ((void*)0); return<br> uref_sibling_alloc_control(s-&gt;flow_def_input); } static struct<br> uref *upipe_sws_make_flow_def(struct upipe *upipe) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); if (s-&gt;flow_def_input ==<br> ((void*)0)) return ((void*)0); struct uref *flow_def = uref_dup<br>(s-&gt;flow_def_input); if (__builtin_expect(!!(flow_def == (<br>(void*)0)),0)) return ((void*)0); uref_attr_import(flow_def, s<br>-&gt;flow_def_attr); return flow_def; } static __attribute__ (<br>(unused)) _Bool upipe_sws_check_flow_def_attr(struct upipe *upipe<br>, struct uref *flow_def_attr) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); return s-&gt;flow_def_attr != ((void*)0) &amp;&amp; !<br>udict_cmp(s-&gt;flow_def_attr-&gt;udict, flow_def_attr-&gt;udict<br>); } static struct uref * upipe_sws_store_flow_def_attr(struct<br> upipe *upipe, struct uref *flow_def_attr) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); if (s-&gt;flow_def_attr !=<br> ((void*)0)) uref_free(s-&gt;flow_def_attr); s-&gt;flow_def_attr<br> = flow_def_attr; return upipe_sws_make_flow_def(upipe); } static<br> struct uref * upipe_sws_store_flow_def_input(struct upipe *upipe<br>, struct uref *flow_def_input) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); if (s-&gt;flow_def_input != ((void*)0)) uref_free(s-&gt;<br>flow_def_input); s-&gt;flow_def_input = flow_def_input; if (s<br>-&gt;flow_def_attr == ((void*)0)) return ((void*)0); return upipe_sws_make_flow_def<br>(upipe); } static void upipe_sws_clean_flow_def(struct upipe *<br>upipe) { struct upipe_sws *s = upipe_sws_from_upipe(upipe); if<br> (s-&gt;flow_def_attr != ((void*)0)) uref_free(s-&gt;flow_def_attr<br>); if (s-&gt;flow_def_input != ((void*)0)) uref_free(s-&gt;flow_def_input<br>); }</span></span></td></tr>
+<tr><td class="num" id="LN134">134</td><td class="line"><span class='macro'>UPIPE_HELPER_UBUF_MGR(upipe_sws, ubuf_mgr, flow_format, ubuf_mgr_request,<span class='expansion'>static void upipe_sws_init_ubuf_mgr(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); s-&gt;ubuf_mgr =<br> ((void*)0); s-&gt;flow_format = ((void*)0); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, ((void*)0)); } static int upipe_sws_provide_ubuf_mgr<br>(struct urequest *urequest, va_list args) { struct upipe *upipe<br> = (struct upipe *)(urequest)-&gt;opaque; struct upipe_sws *s<br> = upipe_sws_from_upipe(upipe); struct ubuf_mgr *ubuf_mgr = __builtin_va_arg<br>(args, struct ubuf_mgr *); struct uref *flow_format = __builtin_va_arg<br>(args, struct uref *); if (ubuf_mgr == s-&gt;ubuf_mgr &amp;&amp;<br> s-&gt;flow_format != ((void*)0) &amp;&amp; s-&gt;flow_format<br>-&gt;udict != ((void*)0) &amp;&amp; flow_format-&gt;udict != (<br>(void*)0) &amp;&amp; !udict_cmp(s-&gt;flow_format-&gt;udict, flow_format<br>-&gt;udict)) { ubuf_mgr_release(ubuf_mgr); uref_free(flow_format<br>); return UBASE_ERR_NONE; } ubuf_mgr_release(s-&gt;ubuf_mgr);<br> s-&gt;ubuf_mgr = ubuf_mgr; upipe_dbg_va(upipe, "provided ubuf_mgr %p"<br>, s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format); s-&gt;flow_format<br> = uref_dup(flow_format); upipe_helper_ubuf_mgr_check check =<br> upipe_sws_check; if (check != ((void*)0)) return check(upipe<br>, flow_format); uref_free(flow_format); return UBASE_ERR_NONE<br>; } static void upipe_sws_require_ubuf_mgr(struct upipe *upipe<br>, struct uref *flow_format) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); upipe_helper_ubuf_mgr_register reg = upipe_sws_register_output_request<br>; upipe_helper_ubuf_mgr_register unreg = upipe_sws_unregister_output_request<br>; ((flow_format != ((void*)0)) ? (void) (0) : __assert_fail (<br>"flow_format != ((void*)0)", "upipe_sws.c", 137, __PRETTY_FUNCTION__<br>)); if ((struct upipe *)(&amp;s-&gt;ubuf_mgr_request)-&gt;opaque<br> != ((void*)0)) { if (unreg != ((void*)0)) unreg(upipe, &amp;<br>s-&gt;ubuf_mgr_request); urequest_clean(&amp;s-&gt;ubuf_mgr_request<br>); ubuf_mgr_release(s-&gt;ubuf_mgr); s-&gt;ubuf_mgr = ((void*<br>)0); } urequest_init_ubuf_mgr(&amp;s-&gt;ubuf_mgr_request, flow_format<br>, upipe_sws_provide_ubuf_mgr, ((void*)0)); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, upipe); uprobe_log((upipe)-&gt;<br>uprobe, upipe, UPROBE_LOG_DEBUG, "require ubuf_mgr"); if (reg<br> != ((void*)0)) reg(upipe, &amp;s-&gt;ubuf_mgr_request); } static<br> __attribute__ ((unused)) _Bool upipe_sws_demand_ubuf_mgr(struct<br> upipe *upipe, struct uref *flow_format) { struct upipe_sws *<br>s = upipe_sws_from_upipe(upipe); upipe_sws_require_ubuf_mgr(upipe<br>, flow_format); if (__builtin_expect(!!(s-&gt;ubuf_mgr == ((void<br>*)0)),0)) upipe_throw_provide_request(upipe, &amp;s-&gt;ubuf_mgr_request<br>); return s-&gt;ubuf_mgr != ((void*)0); } static void upipe_sws_clean_ubuf_mgr<br>(struct upipe *upipe) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ubuf_mgr_release(s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format<br>); }</span></span></td></tr>
+<tr><td class="num" id="LN135">135</td><td class="line">                      <span class='macro'>upipe_sws_check,<span class='expansion'>static void upipe_sws_init_ubuf_mgr(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); s-&gt;ubuf_mgr =<br> ((void*)0); s-&gt;flow_format = ((void*)0); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, ((void*)0)); } static int upipe_sws_provide_ubuf_mgr<br>(struct urequest *urequest, va_list args) { struct upipe *upipe<br> = (struct upipe *)(urequest)-&gt;opaque; struct upipe_sws *s<br> = upipe_sws_from_upipe(upipe); struct ubuf_mgr *ubuf_mgr = __builtin_va_arg<br>(args, struct ubuf_mgr *); struct uref *flow_format = __builtin_va_arg<br>(args, struct uref *); if (ubuf_mgr == s-&gt;ubuf_mgr &amp;&amp;<br> s-&gt;flow_format != ((void*)0) &amp;&amp; s-&gt;flow_format<br>-&gt;udict != ((void*)0) &amp;&amp; flow_format-&gt;udict != (<br>(void*)0) &amp;&amp; !udict_cmp(s-&gt;flow_format-&gt;udict, flow_format<br>-&gt;udict)) { ubuf_mgr_release(ubuf_mgr); uref_free(flow_format<br>); return UBASE_ERR_NONE; } ubuf_mgr_release(s-&gt;ubuf_mgr);<br> s-&gt;ubuf_mgr = ubuf_mgr; upipe_dbg_va(upipe, "provided ubuf_mgr %p"<br>, s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format); s-&gt;flow_format<br> = uref_dup(flow_format); upipe_helper_ubuf_mgr_check check =<br> upipe_sws_check; if (check != ((void*)0)) return check(upipe<br>, flow_format); uref_free(flow_format); return UBASE_ERR_NONE<br>; } static void upipe_sws_require_ubuf_mgr(struct upipe *upipe<br>, struct uref *flow_format) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); upipe_helper_ubuf_mgr_register reg = upipe_sws_register_output_request<br>; upipe_helper_ubuf_mgr_register unreg = upipe_sws_unregister_output_request<br>; ((flow_format != ((void*)0)) ? (void) (0) : __assert_fail (<br>"flow_format != ((void*)0)", "upipe_sws.c", 137, __PRETTY_FUNCTION__<br>)); if ((struct upipe *)(&amp;s-&gt;ubuf_mgr_request)-&gt;opaque<br> != ((void*)0)) { if (unreg != ((void*)0)) unreg(upipe, &amp;<br>s-&gt;ubuf_mgr_request); urequest_clean(&amp;s-&gt;ubuf_mgr_request<br>); ubuf_mgr_release(s-&gt;ubuf_mgr); s-&gt;ubuf_mgr = ((void*<br>)0); } urequest_init_ubuf_mgr(&amp;s-&gt;ubuf_mgr_request, flow_format<br>, upipe_sws_provide_ubuf_mgr, ((void*)0)); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, upipe); uprobe_log((upipe)-&gt;<br>uprobe, upipe, UPROBE_LOG_DEBUG, "require ubuf_mgr"); if (reg<br> != ((void*)0)) reg(upipe, &amp;s-&gt;ubuf_mgr_request); } static<br> __attribute__ ((unused)) _Bool upipe_sws_demand_ubuf_mgr(struct<br> upipe *upipe, struct uref *flow_format) { struct upipe_sws *<br>s = upipe_sws_from_upipe(upipe); upipe_sws_require_ubuf_mgr(upipe<br>, flow_format); if (__builtin_expect(!!(s-&gt;ubuf_mgr == ((void<br>*)0)),0)) upipe_throw_provide_request(upipe, &amp;s-&gt;ubuf_mgr_request<br>); return s-&gt;ubuf_mgr != ((void*)0); } static void upipe_sws_clean_ubuf_mgr<br>(struct upipe *upipe) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ubuf_mgr_release(s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format<br>); }</span></span></td></tr>
+<tr><td class="num" id="LN136">136</td><td class="line">                      <span class='macro'>upipe_sws_register_output_request,<span class='expansion'>static void upipe_sws_init_ubuf_mgr(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); s-&gt;ubuf_mgr =<br> ((void*)0); s-&gt;flow_format = ((void*)0); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, ((void*)0)); } static int upipe_sws_provide_ubuf_mgr<br>(struct urequest *urequest, va_list args) { struct upipe *upipe<br> = (struct upipe *)(urequest)-&gt;opaque; struct upipe_sws *s<br> = upipe_sws_from_upipe(upipe); struct ubuf_mgr *ubuf_mgr = __builtin_va_arg<br>(args, struct ubuf_mgr *); struct uref *flow_format = __builtin_va_arg<br>(args, struct uref *); if (ubuf_mgr == s-&gt;ubuf_mgr &amp;&amp;<br> s-&gt;flow_format != ((void*)0) &amp;&amp; s-&gt;flow_format<br>-&gt;udict != ((void*)0) &amp;&amp; flow_format-&gt;udict != (<br>(void*)0) &amp;&amp; !udict_cmp(s-&gt;flow_format-&gt;udict, flow_format<br>-&gt;udict)) { ubuf_mgr_release(ubuf_mgr); uref_free(flow_format<br>); return UBASE_ERR_NONE; } ubuf_mgr_release(s-&gt;ubuf_mgr);<br> s-&gt;ubuf_mgr = ubuf_mgr; upipe_dbg_va(upipe, "provided ubuf_mgr %p"<br>, s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format); s-&gt;flow_format<br> = uref_dup(flow_format); upipe_helper_ubuf_mgr_check check =<br> upipe_sws_check; if (check != ((void*)0)) return check(upipe<br>, flow_format); uref_free(flow_format); return UBASE_ERR_NONE<br>; } static void upipe_sws_require_ubuf_mgr(struct upipe *upipe<br>, struct uref *flow_format) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); upipe_helper_ubuf_mgr_register reg = upipe_sws_register_output_request<br>; upipe_helper_ubuf_mgr_register unreg = upipe_sws_unregister_output_request<br>; ((flow_format != ((void*)0)) ? (void) (0) : __assert_fail (<br>"flow_format != ((void*)0)", "upipe_sws.c", 137, __PRETTY_FUNCTION__<br>)); if ((struct upipe *)(&amp;s-&gt;ubuf_mgr_request)-&gt;opaque<br> != ((void*)0)) { if (unreg != ((void*)0)) unreg(upipe, &amp;<br>s-&gt;ubuf_mgr_request); urequest_clean(&amp;s-&gt;ubuf_mgr_request<br>); ubuf_mgr_release(s-&gt;ubuf_mgr); s-&gt;ubuf_mgr = ((void*<br>)0); } urequest_init_ubuf_mgr(&amp;s-&gt;ubuf_mgr_request, flow_format<br>, upipe_sws_provide_ubuf_mgr, ((void*)0)); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, upipe); uprobe_log((upipe)-&gt;<br>uprobe, upipe, UPROBE_LOG_DEBUG, "require ubuf_mgr"); if (reg<br> != ((void*)0)) reg(upipe, &amp;s-&gt;ubuf_mgr_request); } static<br> __attribute__ ((unused)) _Bool upipe_sws_demand_ubuf_mgr(struct<br> upipe *upipe, struct uref *flow_format) { struct upipe_sws *<br>s = upipe_sws_from_upipe(upipe); upipe_sws_require_ubuf_mgr(upipe<br>, flow_format); if (__builtin_expect(!!(s-&gt;ubuf_mgr == ((void<br>*)0)),0)) upipe_throw_provide_request(upipe, &amp;s-&gt;ubuf_mgr_request<br>); return s-&gt;ubuf_mgr != ((void*)0); } static void upipe_sws_clean_ubuf_mgr<br>(struct upipe *upipe) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ubuf_mgr_release(s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format<br>); }</span></span></td></tr>
+<tr><td class="num" id="LN137">137</td><td class="line">                      <span class='macro'>upipe_sws_unregister_output_request)<span class='expansion'>static void upipe_sws_init_ubuf_mgr(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); s-&gt;ubuf_mgr =<br> ((void*)0); s-&gt;flow_format = ((void*)0); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, ((void*)0)); } static int upipe_sws_provide_ubuf_mgr<br>(struct urequest *urequest, va_list args) { struct upipe *upipe<br> = (struct upipe *)(urequest)-&gt;opaque; struct upipe_sws *s<br> = upipe_sws_from_upipe(upipe); struct ubuf_mgr *ubuf_mgr = __builtin_va_arg<br>(args, struct ubuf_mgr *); struct uref *flow_format = __builtin_va_arg<br>(args, struct uref *); if (ubuf_mgr == s-&gt;ubuf_mgr &amp;&amp;<br> s-&gt;flow_format != ((void*)0) &amp;&amp; s-&gt;flow_format<br>-&gt;udict != ((void*)0) &amp;&amp; flow_format-&gt;udict != (<br>(void*)0) &amp;&amp; !udict_cmp(s-&gt;flow_format-&gt;udict, flow_format<br>-&gt;udict)) { ubuf_mgr_release(ubuf_mgr); uref_free(flow_format<br>); return UBASE_ERR_NONE; } ubuf_mgr_release(s-&gt;ubuf_mgr);<br> s-&gt;ubuf_mgr = ubuf_mgr; upipe_dbg_va(upipe, "provided ubuf_mgr %p"<br>, s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format); s-&gt;flow_format<br> = uref_dup(flow_format); upipe_helper_ubuf_mgr_check check =<br> upipe_sws_check; if (check != ((void*)0)) return check(upipe<br>, flow_format); uref_free(flow_format); return UBASE_ERR_NONE<br>; } static void upipe_sws_require_ubuf_mgr(struct upipe *upipe<br>, struct uref *flow_format) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); upipe_helper_ubuf_mgr_register reg = upipe_sws_register_output_request<br>; upipe_helper_ubuf_mgr_register unreg = upipe_sws_unregister_output_request<br>; ((flow_format != ((void*)0)) ? (void) (0) : __assert_fail (<br>"flow_format != ((void*)0)", "upipe_sws.c", 137, __PRETTY_FUNCTION__<br>)); if ((struct upipe *)(&amp;s-&gt;ubuf_mgr_request)-&gt;opaque<br> != ((void*)0)) { if (unreg != ((void*)0)) unreg(upipe, &amp;<br>s-&gt;ubuf_mgr_request); urequest_clean(&amp;s-&gt;ubuf_mgr_request<br>); ubuf_mgr_release(s-&gt;ubuf_mgr); s-&gt;ubuf_mgr = ((void*<br>)0); } urequest_init_ubuf_mgr(&amp;s-&gt;ubuf_mgr_request, flow_format<br>, upipe_sws_provide_ubuf_mgr, ((void*)0)); urequest_set_opaque<br>(&amp;s-&gt;ubuf_mgr_request, upipe); uprobe_log((upipe)-&gt;<br>uprobe, upipe, UPROBE_LOG_DEBUG, "require ubuf_mgr"); if (reg<br> != ((void*)0)) reg(upipe, &amp;s-&gt;ubuf_mgr_request); } static<br> __attribute__ ((unused)) _Bool upipe_sws_demand_ubuf_mgr(struct<br> upipe *upipe, struct uref *flow_format) { struct upipe_sws *<br>s = upipe_sws_from_upipe(upipe); upipe_sws_require_ubuf_mgr(upipe<br>, flow_format); if (__builtin_expect(!!(s-&gt;ubuf_mgr == ((void<br>*)0)),0)) upipe_throw_provide_request(upipe, &amp;s-&gt;ubuf_mgr_request<br>); return s-&gt;ubuf_mgr != ((void*)0); } static void upipe_sws_clean_ubuf_mgr<br>(struct upipe *upipe) { struct upipe_sws *s = upipe_sws_from_upipe<br>(upipe); ubuf_mgr_release(s-&gt;ubuf_mgr); uref_free(s-&gt;flow_format<br>); }</span></span></td></tr>
+<tr><td class="num" id="LN138">138</td><td class="line"><span class='macro'>UPIPE_HELPER_INPUT(upipe_sws, urefs, nb_urefs, max_urefs, blockers, upipe_sws_handle)<span class='expansion'>static void upipe_sws_init_input(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); ulist_init(&amp;<br>s-&gt;urefs); s-&gt;nb_urefs = 0; s-&gt;max_urefs = 0; ulist_init<br>(&amp;s-&gt;blockers); } static __attribute__ ((unused)) void<br> upipe_sws_block_input_cb(struct upump_blocker *blocker) { ulist_delete<br>(upump_blocker_to_uchain(blocker)); upump_blocker_free(blocker<br>); } static __attribute__ ((unused)) void upipe_sws_block_input<br>(struct upipe *upipe, struct upump **upump_p) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); if (upump_p == ((void*)0) ||<br> *upump_p == ((void*)0) || s-&gt;nb_urefs &lt;= s-&gt;max_urefs<br> || upump_blocker_find(&amp;s-&gt;blockers, *upump_p) != ((void<br>*)0)) return; struct upump_blocker *blocker = upump_blocker_alloc<br>(*upump_p, upipe_sws_block_input_cb, upipe); ulist_add(&amp;s<br>-&gt;blockers, upump_blocker_to_uchain(blocker)); } static __attribute__<br> ((unused)) void upipe_sws_unblock_input(struct upipe *upipe)<br> { struct upipe_sws *s = upipe_sws_from_upipe(upipe); if (s-&gt;<br>nb_urefs &gt; s-&gt;max_urefs) return; struct uchain *uchain,<br> *uchain_tmp; for ((uchain) = (&amp;s-&gt;blockers)-&gt;next,<br> (uchain_tmp) = (uchain)-&gt;next; (uchain) != (&amp;s-&gt;blockers<br>); (uchain) = (uchain_tmp), (uchain_tmp) = (uchain)-&gt;next)<br> { ulist_delete(uchain); upump_blocker_free(upump_blocker_from_uchain<br>(uchain)); } } static _Bool upipe_sws_check_input(struct upipe<br> *upipe) { struct upipe_sws *s = upipe_sws_from_upipe(upipe);<br> return ulist_empty(&amp;s-&gt;urefs); } static void upipe_sws_hold_input<br>(struct upipe *upipe, struct uref *uref) { struct upipe_sws *<br>s = upipe_sws_from_upipe(upipe); ulist_add(&amp;s-&gt;urefs, uref_to_uchain<br>(uref)); s-&gt;nb_urefs++; } static __attribute__ ((unused)) struct<br> uref *upipe_sws_pop_input(struct upipe *upipe) { struct upipe_sws<br> *s = upipe_sws_from_upipe(upipe); struct uchain *uchain = ulist_pop<br>(&amp;s-&gt;urefs); if (uchain == ((void*)0)) return ((void*)<br>0); s-&gt;nb_urefs--; return uref_from_uchain(uchain); } static<br> __attribute__ ((unused)) _Bool upipe_sws_output_input(struct<br> upipe *upipe) { struct upipe_sws *s = upipe_sws_from_upipe(upipe<br>); struct uchain *uchain; while ((uchain = ulist_pop(&amp;s-&gt;<br>urefs)) != ((void*)0)) { s-&gt;nb_urefs--; _Bool (*output)(struct<br> upipe *, struct uref *, struct upump **) = upipe_sws_handle;<br> if (output != ((void*)0) &amp;&amp; !output(upipe, uref_from_uchain<br>(uchain), ((void*)0))) { ulist_unshift(&amp;s-&gt;urefs, uchain<br>); s-&gt;nb_urefs++; return 0; } } return 1; } static __attribute__<br> ((unused)) int upipe_sws_get_max_length(struct upipe *upipe,<br> unsigned int *p) { struct upipe_sws *upipe_sws = upipe_sws_from_upipe<br>(upipe); ((p != ((void*)0)) ? (void) (0) : __assert_fail ("p != ((void*)0)"<br>, "upipe_sws.c", 138, __PRETTY_FUNCTION__)); *p = upipe_sws-&gt;<br>max_urefs; return UBASE_ERR_NONE; } static __attribute__ ((unused<br>)) int upipe_sws_set_max_length(struct upipe *upipe, unsigned<br> int length) { struct upipe_sws *upipe_sws = upipe_sws_from_upipe<br>(upipe); upipe_sws-&gt;max_urefs = length; return UBASE_ERR_NONE<br>; } static void upipe_sws_clean_input(struct upipe *upipe) { struct<br> upipe_sws *s = upipe_sws_from_upipe(upipe); s-&gt;nb_urefs =<br> 0; upipe_sws_unblock_input(upipe); struct uchain *uchain, *uchain_tmp<br>; for ((uchain) = (&amp;s-&gt;urefs)-&gt;next, (uchain_tmp) =<br> (uchain)-&gt;next; (uchain) != (&amp;s-&gt;urefs); (uchain) =<br> (uchain_tmp), (uchain_tmp) = (uchain)-&gt;next) { ulist_delete<br>(uchain); uref_free(uref_from_uchain(uchain)); } } static __attribute__<br> ((unused)) _Bool upipe_sws_flush_input(struct upipe *upipe) {<br> if (upipe_sws_check_input(upipe)) return 0; upipe_sws_clean_input<br>(upipe); upipe_sws_init_input(upipe); return 1; }</span></span></td></tr>
+<tr><td class="num" id="LN139">139</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN140">140</td><td class="line"><span class='comment'>/** @internal @This converts Upipe color space to sws color space.</span></td></tr>
+<tr><td class="num" id="LN141">141</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN142">142</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN143">143</td><td class="line"> <span class='comment'>* @param flow_def flow definition packet</span></td></tr>
+<tr><td class="num" id="LN144">144</td><td class="line"> <span class='comment'>* @return sws color space</span></td></tr>
+<tr><td class="num" id="LN145">145</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN146">146</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> upipe_sws_convert_color(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>struct</span> uref *flow_def)</td></tr>
+<tr><td class="num" id="LN147">147</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN148">148</td><td class="line">    <span class='keyword'>int</span> colorspace = -1;</td></tr>
+<tr><td class="num" id="LN149">149</td><td class="line">    <span class='keyword'>const</span> <span class='keyword'>char</span> *matrix_coefficients;</td></tr>
+<tr><td class="num" id="LN150">150</td><td class="line">    <span class='keyword'>if</span> (ubase_check(uref_pic_flow_get_matrix_coefficients(flow_def,</td></tr>
+<tr><td class="num" id="LN151">151</td><td class="line">                    &amp;matrix_coefficients))) {</td></tr>
+<tr><td class="num" id="LN152">152</td><td class="line">        <span class='keyword'>if</span> (!strcmp(matrix_coefficients, <span class='string_literal'>"bt709"</span>))</td></tr>
+<tr><td class="num" id="LN153">153</td><td class="line">            colorspace = <span class='macro'>SWS_CS_ITU709<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN154">154</td><td class="line">        <span class='keyword'>else</span> <span class='keyword'>if</span> (!strcmp(matrix_coefficients, <span class='string_literal'>"fcc"</span>))</td></tr>
+<tr><td class="num" id="LN155">155</td><td class="line">            colorspace = <span class='macro'>SWS_CS_FCC<span class='expansion'>4</span></span>;</td></tr>
+<tr><td class="num" id="LN156">156</td><td class="line">        <span class='keyword'>else</span> <span class='keyword'>if</span> (!strcmp(matrix_coefficients, <span class='string_literal'>"smpte170m"</span>))</td></tr>
+<tr><td class="num" id="LN157">157</td><td class="line">            colorspace = <span class='macro'>SWS_CS_SMPTE170M<span class='expansion'>5</span></span>;</td></tr>
+<tr><td class="num" id="LN158">158</td><td class="line">        <span class='keyword'>else</span> <span class='keyword'>if</span> (!strcmp(matrix_coefficients, <span class='string_literal'>"smpte240m"</span>))</td></tr>
+<tr><td class="num" id="LN159">159</td><td class="line">            colorspace = <span class='macro'>SWS_CS_SMPTE240M<span class='expansion'>7</span></span>;</td></tr>
+<tr><td class="num" id="LN160">160</td><td class="line">        <span class='keyword'>else</span></td></tr>
+<tr><td class="num" id="LN161">161</td><td class="line">            upipe_warn_va(upipe, <span class='string_literal'>"unknown color space %s"</span>, matrix_coefficients);</td></tr>
+<tr><td class="num" id="LN162">162</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN163">163</td><td class="line">    <span class='keyword'>return</span> colorspace;</td></tr>
+<tr><td class="num" id="LN164">164</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN165">165</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN166">166</td><td class="line"><span class='comment'>/** @internal @This handles data.</span></td></tr>
+<tr><td class="num" id="LN167">167</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN168">168</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN169">169</td><td class="line"> <span class='comment'>* @param uref uref structure describing the picture</span></td></tr>
+<tr><td class="num" id="LN170">170</td><td class="line"> <span class='comment'>* @param upump_p reference to pump that generated the buffer</span></td></tr>
+<tr><td class="num" id="LN171">171</td><td class="line"> <span class='comment'>* @return false if the input must be blocked</span></td></tr>
+<tr><td class="num" id="LN172">172</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN173">173</td><td class="line"><span class='keyword'>static</span> <span class='macro'>bool<span class='expansion'>_Bool</span></span> upipe_sws_handle(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>struct</span> uref *uref,</td></tr>
+<tr><td class="num" id="LN174">174</td><td class="line">                             <span class='keyword'>struct</span> upump **upump_p)</td></tr>
+<tr><td class="num" id="LN175">175</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN176">176</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN177">177</td><td class="line">    <span class='keyword'>const</span> <span class='keyword'>char</span> *def;</td></tr>
+<tr><td class="num" id="LN178">178</td><td class="line">    <span class='keyword'>if</span> (<span class='macro'>unlikely(ubase_check(uref_flow_get_def(uref, &amp;def)))<span class='expansion'>__builtin_expect(!!(ubase_check(uref_flow_get_def(uref, &amp;<br>def))),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN179">179</td><td class="line">        upipe_sws_store_flow_def(upipe, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>);</td></tr>
+<tr><td class="num" id="LN180">180</td><td class="line">        uref = upipe_sws_store_flow_def_input(upipe, uref);</td></tr>
+<tr><td class="num" id="LN181">181</td><td class="line">        <span class='keyword'>struct</span> urational dar;</td></tr>
+<tr><td class="num" id="LN182">182</td><td class="line">        <span class='keyword'>if</span> (ubase_check(uref_pic_flow_get_dar(uref, &amp;dar)))</td></tr>
+<tr><td class="num" id="LN183">183</td><td class="line">            uref_pic_flow_infer_sar(uref, dar);</td></tr>
+<tr><td class="num" id="LN184">184</td><td class="line">        upipe_sws_require_ubuf_mgr(upipe, uref);</td></tr>
+<tr><td class="num" id="LN185">185</td><td class="line">        <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN186">186</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN187">187</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN188">188</td><td class="line">    <span class='keyword'>if</span> (upipe_sws-&gt;flow_def == <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>)</td></tr>
+<tr><td class="num" id="LN189">189</td><td class="line">        <span class='keyword'>return</span> <span class='macro'>false<span class='expansion'>0</span></span>;</td></tr>
+<tr><td class="num" id="LN190">190</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN191">191</td><td class="line">    size_t input_hsize, input_vsize;</td></tr>
+<tr><td class="num" id="LN192">192</td><td class="line">    <span class='keyword'>if</span> (!ubase_check(uref_pic_size(uref, &amp;input_hsize, &amp;input_vsize, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>))) {</td></tr>
+<tr><td class="num" id="LN193">193</td><td class="line">        <span class='macro'>upipe_warn(upipe, <span class='string_literal'>"invalid buffer received"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_WARNING, "invalid buffer received"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN194">194</td><td class="line">        uref_free(uref);</td></tr>
+<tr><td class="num" id="LN195">195</td><td class="line">        <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN196">196</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN197">197</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN198">198</td><td class="line">    <span class='keyword'>int</span> progressive = ubase_check(uref_pic_get_progressive(uref)) ? 1 : 0;</td></tr>
+<tr><td class="num" id="LN199">199</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN200">200</td><td class="line">    uint64_t output_hsize, output_vsize;</td></tr>
+<tr><td class="num" id="LN201">201</td><td class="line">    <span class='keyword'>if</span> (!ubase_check(uref_pic_flow_get_hsize(upipe_sws-&gt;flow_def_attr, &amp;output_hsize)) ||</td></tr>
+<tr><td class="num" id="LN202">202</td><td class="line">        !ubase_check(uref_pic_flow_get_vsize(upipe_sws-&gt;flow_def_attr, &amp;output_vsize))) {</td></tr>
+<tr><td class="num" id="LN203">203</td><td class="line">        <span class='comment'>/* comes handy in case of format conversion with no rescaling */</span></td></tr>
+<tr><td class="num" id="LN204">204</td><td class="line">        output_hsize = input_hsize;</td></tr>
+<tr><td class="num" id="LN205">205</td><td class="line">        output_vsize = input_vsize;</td></tr>
+<tr><td class="num" id="LN206">206</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN207">207</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN208">208</td><td class="line">    <span class='keyword'>int</span> i;</td></tr>
+<tr><td class="num" id="LN209">209</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; 3; i++) {</td></tr>
+<tr><td class="num" id="LN210">210</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = sws_getCachedContext(upipe_sws-&gt;convert_ctx[i],</td></tr>
+<tr><td class="num" id="LN211">211</td><td class="line">                    input_hsize, input_vsize &gt;&gt; !!i, upipe_sws-&gt;input_pix_fmt,</td></tr>
+<tr><td class="num" id="LN212">212</td><td class="line">                    output_hsize, output_vsize &gt;&gt; !!i, upipe_sws-&gt;output_pix_fmt,</td></tr>
+<tr><td class="num" id="LN213">213</td><td class="line">                    upipe_sws-&gt;flags, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>);</td></tr>
+<tr><td class="num" id="LN214">214</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN215">215</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>unlikely(upipe_sws-&gt;convert_ctx[i] == NULL)<span class='expansion'>__builtin_expect(!!(upipe_sws-&gt;convert_ctx[i] == ((void*)0<br>)),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN216">216</td><td class="line">            <span class='macro'>upipe_err(upipe, <span class='string_literal'>"sws_getContext failed"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_ERROR, "sws_getContext failed"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN217">217</td><td class="line">            uref_free(uref);</td></tr>
+<tr><td class="num" id="LN218">218</td><td class="line">            <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN219">219</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN220">220</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN221">221</td><td class="line">        <span class='keyword'>if</span> (upipe_sws-&gt;colorspace_invalid)</td></tr>
+<tr><td class="num" id="LN222">222</td><td class="line">            <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN223">223</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN224">224</td><td class="line">        <span class='keyword'>int</span> in_full, out_full, brightness, contrast, saturation;</td></tr>
+<tr><td class="num" id="LN225">225</td><td class="line">        <span class='keyword'>const</span> <span class='keyword'>int</span> *inv_table, *table;</td></tr>
+<tr><td class="num" id="LN226">226</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN227">227</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>unlikely(sws_getColorspaceDetails(upipe_sws-&gt;convert_ctx[i],<span class='expansion'>__builtin_expect(!!(sws_getColorspaceDetails(upipe_sws-&gt;convert_ctx<br>[i], (int **)&amp;inv_table, &amp;in_full, (int **)&amp;table<br>, &amp;out_full, &amp;brightness, &amp;contrast, &amp;saturation<br>) &lt; 0),0)</span></span></td></tr>
+<tr><td class="num" id="LN228">228</td><td class="line">                        <span class='macro'>(<span class='keyword'>int</span> **)&amp;inv_table, &amp;in_full, (<span class='keyword'>int</span> **)&amp;table, &amp;out_full,<span class='expansion'>__builtin_expect(!!(sws_getColorspaceDetails(upipe_sws-&gt;convert_ctx<br>[i], (int **)&amp;inv_table, &amp;in_full, (int **)&amp;table<br>, &amp;out_full, &amp;brightness, &amp;contrast, &amp;saturation<br>) &lt; 0),0)</span></span></td></tr>
+<tr><td class="num" id="LN229">229</td><td class="line">                        <span class='macro'>&amp;brightness, &amp;contrast, &amp;saturation) &lt; 0)<span class='expansion'>__builtin_expect(!!(sws_getColorspaceDetails(upipe_sws-&gt;convert_ctx<br>[i], (int **)&amp;inv_table, &amp;in_full, (int **)&amp;table<br>, &amp;out_full, &amp;brightness, &amp;contrast, &amp;saturation<br>) &lt; 0),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN230">230</td><td class="line">            <span class='macro'>upipe_warn(upipe, <span class='string_literal'>"unable to set color space data"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_WARNING, "unable to set color space data"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN231">231</td><td class="line">            upipe_sws-&gt;colorspace_invalid = <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN232">232</td><td class="line">            <span class='keyword'>continue</span>;</td></tr>
+<tr><td class="num" id="LN233">233</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN234">234</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN235">235</td><td class="line">        <span class='keyword'>if</span> (upipe_sws-&gt;input_colorspace != -1)</td></tr>
+<tr><td class="num" id="LN236">236</td><td class="line">            inv_table = sws_getCoefficients(upipe_sws-&gt;input_colorspace);</td></tr>
+<tr><td class="num" id="LN237">237</td><td class="line">        <span class='keyword'>if</span> (upipe_sws-&gt;input_color_range != -1)</td></tr>
+<tr><td class="num" id="LN238">238</td><td class="line">            in_full = upipe_sws-&gt;input_color_range;</td></tr>
+<tr><td class="num" id="LN239">239</td><td class="line">        <span class='keyword'>if</span> (upipe_sws-&gt;output_colorspace != -1)</td></tr>
+<tr><td class="num" id="LN240">240</td><td class="line">            table = sws_getCoefficients(upipe_sws-&gt;output_colorspace);</td></tr>
+<tr><td class="num" id="LN241">241</td><td class="line">        <span class='keyword'>if</span> (upipe_sws-&gt;output_color_range != -1)</td></tr>
+<tr><td class="num" id="LN242">242</td><td class="line">            out_full = upipe_sws-&gt;output_color_range;</td></tr>
+<tr><td class="num" id="LN243">243</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN244">244</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>unlikely(sws_setColorspaceDetails(upipe_sws-&gt;convert_ctx[i],<span class='expansion'>__builtin_expect(!!(sws_setColorspaceDetails(upipe_sws-&gt;convert_ctx<br>[i], inv_table, in_full, table, out_full, brightness, contrast<br>, saturation) &lt; 0),0)</span></span></td></tr>
+<tr><td class="num" id="LN245">245</td><td class="line">                        <span class='macro'>inv_table, in_full, table, out_full,<span class='expansion'>__builtin_expect(!!(sws_setColorspaceDetails(upipe_sws-&gt;convert_ctx<br>[i], inv_table, in_full, table, out_full, brightness, contrast<br>, saturation) &lt; 0),0)</span></span></td></tr>
+<tr><td class="num" id="LN246">246</td><td class="line">                        <span class='macro'>brightness, contrast, saturation) &lt; 0)<span class='expansion'>__builtin_expect(!!(sws_setColorspaceDetails(upipe_sws-&gt;convert_ctx<br>[i], inv_table, in_full, table, out_full, brightness, contrast<br>, saturation) &lt; 0),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN247">247</td><td class="line">            <span class='macro'>upipe_warn(upipe, <span class='string_literal'>"unable to set color space data"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_WARNING, "unable to set color space data"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN248">248</td><td class="line">            upipe_sws-&gt;colorspace_invalid = <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN249">249</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN250">250</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN251">251</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN252">252</td><td class="line">    upipe_verbose_va(upipe, <span class='string_literal'>"%s -&gt; %s"</span>,</td></tr>
+<tr><td class="num" id="LN253">253</td><td class="line">        av_get_pix_fmt_name(upipe_sws-&gt;input_pix_fmt),</td></tr>
+<tr><td class="num" id="LN254">254</td><td class="line">        av_get_pix_fmt_name(upipe_sws-&gt;output_pix_fmt));</td></tr>
+<tr><td class="num" id="LN255">255</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN256">256</td><td class="line">    <span class='comment'>/* map input */</span></td></tr>
+<tr><td class="num" id="LN257">257</td><td class="line">    <span class='keyword'>const</span> uint8_t *input_planes[<span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> + 1];</td></tr>
+<tr><td class="num" id="LN258">258</td><td class="line">    <span class='keyword'>int</span> input_strides[<span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> + 1];</td></tr>
+<tr><td class="num" id="LN259">259</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; <span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> &amp;&amp;</td></tr>
+<tr><td class="num" id="LN260">260</td><td class="line">                upipe_sws-&gt;input_chroma_map[i] != <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>; i++) {</td></tr>
+<tr><td class="num" id="LN261">261</td><td class="line">        <span class='keyword'>const</span> uint8_t *data;</td></tr>
+<tr><td class="num" id="LN262">262</td><td class="line">        size_t stride;</td></tr>
+<tr><td class="num" id="LN263">263</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>unlikely(!ubase_check(uref_pic_plane_read(uref,<span class='expansion'>__builtin_expect(!!(!ubase_check(uref_pic_plane_read(uref, upipe_sws<br>-&gt;input_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(uref_pic_plane_size(uref, upipe_sws-&gt;input_chroma_map[i],<br> &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN264">264</td><td class="line">                                          <span class='macro'>upipe_sws-&gt;input_chroma_map[i],<span class='expansion'>__builtin_expect(!!(!ubase_check(uref_pic_plane_read(uref, upipe_sws<br>-&gt;input_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(uref_pic_plane_size(uref, upipe_sws-&gt;input_chroma_map[i],<br> &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN265">265</td><td class="line">                                          <span class='macro'>0, 0, -1, -1, &amp;data)) ||<span class='expansion'>__builtin_expect(!!(!ubase_check(uref_pic_plane_read(uref, upipe_sws<br>-&gt;input_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(uref_pic_plane_size(uref, upipe_sws-&gt;input_chroma_map[i],<br> &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN266">266</td><td class="line">                     <span class='macro'>!ubase_check(uref_pic_plane_size(uref,<span class='expansion'>__builtin_expect(!!(!ubase_check(uref_pic_plane_read(uref, upipe_sws<br>-&gt;input_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(uref_pic_plane_size(uref, upipe_sws-&gt;input_chroma_map[i],<br> &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN267">267</td><td class="line">                                          <span class='macro'>upipe_sws-&gt;input_chroma_map[i],<span class='expansion'>__builtin_expect(!!(!ubase_check(uref_pic_plane_read(uref, upipe_sws<br>-&gt;input_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(uref_pic_plane_size(uref, upipe_sws-&gt;input_chroma_map[i],<br> &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN268">268</td><td class="line">                                          <span class='macro'>&amp;stride, NULL, NULL, NULL)))<span class='expansion'>__builtin_expect(!!(!ubase_check(uref_pic_plane_read(uref, upipe_sws<br>-&gt;input_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(uref_pic_plane_size(uref, upipe_sws-&gt;input_chroma_map[i],<br> &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN269">269</td><td class="line">            <span class='macro'>upipe_warn(upipe, <span class='string_literal'>"invalid buffer received"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_WARNING, "invalid buffer received"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN270">270</td><td class="line">            uref_free(uref);</td></tr>
+<tr><td class="num" id="LN271">271</td><td class="line">            <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN272">272</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN273">273</td><td class="line">        input_planes[i] = data;</td></tr>
+<tr><td class="num" id="LN274">274</td><td class="line">        input_strides[i] = stride * (1+!progressive);</td></tr>
+<tr><td class="num" id="LN275">275</td><td class="line">        upipe_verbose_va(upipe, <span class='string_literal'>"input_stride[%d] %d"</span>,</td></tr>
+<tr><td class="num" id="LN276">276</td><td class="line">                         i, input_strides[i]);</td></tr>
+<tr><td class="num" id="LN277">277</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN278">278</td><td class="line">    input_planes[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN279">279</td><td class="line">    input_strides[i] = 0;</td></tr>
+<tr><td class="num" id="LN280">280</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN281">281</td><td class="line">    <span class='comment'>/* allocate dest ubuf */</span></td></tr>
+<tr><td class="num" id="LN282">282</td><td class="line">    <span class='keyword'>struct</span> ubuf *ubuf = ubuf_pic_alloc(upipe_sws-&gt;ubuf_mgr,</td></tr>
+<tr><td class="num" id="LN283">283</td><td class="line">                                       output_hsize, output_vsize);</td></tr>
+<tr><td class="num" id="LN284">284</td><td class="line">    <span class='keyword'>if</span> (<span class='macro'>unlikely(ubuf == NULL)<span class='expansion'>__builtin_expect(!!(ubuf == ((void*)0)),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN285">285</td><td class="line">        <span class='keyword'>for</span> (i = 0; i &lt; <span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> &amp;&amp;</td></tr>
+<tr><td class="num" id="LN286">286</td><td class="line">                    upipe_sws-&gt;input_chroma_map[i] != <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>; i++)</td></tr>
+<tr><td class="num" id="LN287">287</td><td class="line">            uref_pic_plane_unmap(uref, upipe_sws-&gt;input_chroma_map[i],</td></tr>
+<tr><td class="num" id="LN288">288</td><td class="line">                                 0, 0, -1, -1);</td></tr>
+<tr><td class="num" id="LN289">289</td><td class="line">        uref_free(uref);</td></tr>
+<tr><td class="num" id="LN290">290</td><td class="line">        <span class='macro'>upipe_throw_fatal(upipe, UBASE_ERR_ALLOC)<span class='expansion'>do { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 290, UBASE_ERR_ALLOC); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, UBASE_ERR_ALLOC); } while (0)</span></span>;</td></tr>
+<tr><td class="num" id="LN291">291</td><td class="line">        <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN292">292</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN293">293</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN294">294</td><td class="line">    <span class='comment'>/* map output */</span></td></tr>
+<tr><td class="num" id="LN295">295</td><td class="line">    uint8_t *output_planes[<span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> + 1];</td></tr>
+<tr><td class="num" id="LN296">296</td><td class="line">    <span class='keyword'>int</span> output_strides[<span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> + 1];</td></tr>
+<tr><td class="num" id="LN297">297</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; <span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> &amp;&amp;</td></tr>
+<tr><td class="num" id="LN298">298</td><td class="line">                upipe_sws-&gt;output_chroma_map[i] != <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>; i++) {</td></tr>
+<tr><td class="num" id="LN299">299</td><td class="line">        uint8_t *data;</td></tr>
+<tr><td class="num" id="LN300">300</td><td class="line">        size_t stride;</td></tr>
+<tr><td class="num" id="LN301">301</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>unlikely(!ubase_check(ubuf_pic_plane_write(ubuf,<span class='expansion'>__builtin_expect(!!(!ubase_check(ubuf_pic_plane_write(ubuf, upipe_sws<br>-&gt;output_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(ubuf_pic_plane_size(ubuf, upipe_sws-&gt;output_chroma_map[i]<br>, &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN302">302</td><td class="line">                                           <span class='macro'>upipe_sws-&gt;output_chroma_map[i],<span class='expansion'>__builtin_expect(!!(!ubase_check(ubuf_pic_plane_write(ubuf, upipe_sws<br>-&gt;output_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(ubuf_pic_plane_size(ubuf, upipe_sws-&gt;output_chroma_map[i]<br>, &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN303">303</td><td class="line">                                           <span class='macro'>0, 0, -1, -1, &amp;data)) ||<span class='expansion'>__builtin_expect(!!(!ubase_check(ubuf_pic_plane_write(ubuf, upipe_sws<br>-&gt;output_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(ubuf_pic_plane_size(ubuf, upipe_sws-&gt;output_chroma_map[i]<br>, &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN304">304</td><td class="line">                     <span class='macro'>!ubase_check(ubuf_pic_plane_size(ubuf,<span class='expansion'>__builtin_expect(!!(!ubase_check(ubuf_pic_plane_write(ubuf, upipe_sws<br>-&gt;output_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(ubuf_pic_plane_size(ubuf, upipe_sws-&gt;output_chroma_map[i]<br>, &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN305">305</td><td class="line">                                          <span class='macro'>upipe_sws-&gt;output_chroma_map[i],<span class='expansion'>__builtin_expect(!!(!ubase_check(ubuf_pic_plane_write(ubuf, upipe_sws<br>-&gt;output_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(ubuf_pic_plane_size(ubuf, upipe_sws-&gt;output_chroma_map[i]<br>, &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span></td></tr>
+<tr><td class="num" id="LN306">306</td><td class="line">                                          <span class='macro'>&amp;stride, NULL, NULL, NULL)))<span class='expansion'>__builtin_expect(!!(!ubase_check(ubuf_pic_plane_write(ubuf, upipe_sws<br>-&gt;output_chroma_map[i], 0, 0, -1, -1, &amp;data)) || !ubase_check<br>(ubuf_pic_plane_size(ubuf, upipe_sws-&gt;output_chroma_map[i]<br>, &amp;stride, ((void*)0), ((void*)0), ((void*)0)))),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN307">307</td><td class="line">            <span class='macro'>upipe_warn(upipe, <span class='string_literal'>"invalid buffer received"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_WARNING, "invalid buffer received"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN308">308</td><td class="line">            ubuf_free(ubuf);</td></tr>
+<tr><td class="num" id="LN309">309</td><td class="line">            uref_free(uref);</td></tr>
+<tr><td class="num" id="LN310">310</td><td class="line">            <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN311">311</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN312">312</td><td class="line">        output_planes[i] = data;</td></tr>
+<tr><td class="num" id="LN313">313</td><td class="line">        output_strides[i] = stride * (1+!progressive);</td></tr>
+<tr><td class="num" id="LN314">314</td><td class="line">        upipe_verbose_va(upipe, <span class='string_literal'>"output_stride[%d] %d"</span>,</td></tr>
+<tr><td class="num" id="LN315">315</td><td class="line">                         i, output_strides[i]);</td></tr>
+<tr><td class="num" id="LN316">316</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN317">317</td><td class="line">    output_planes[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN318">318</td><td class="line">    output_strides[i] = 0;</td></tr>
+<tr><td class="num" id="LN319">319</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN320">320</td><td class="line">    <span class='comment'>/* fire ! */</span></td></tr>
+<tr><td class="num" id="LN321">321</td><td class="line">    <span class='keyword'>int</span> ret = 0, ret2 = 1;</td></tr>
+<tr><td class="num" id="LN322">322</td><td class="line">    <span class='keyword'>if</span> (progressive) {</td></tr>
+<tr><td class="num" id="LN323">323</td><td class="line">        ret = sws_scale(upipe_sws-&gt;convert_ctx[0],</td></tr>
+<tr><td class="num" id="LN324">324</td><td class="line">                        input_planes, input_strides, 0, input_vsize,</td></tr>
+<tr><td class="num" id="LN325">325</td><td class="line">                        output_planes, output_strides);</td></tr>
+<tr><td class="num" id="LN326">326</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN327">327</td><td class="line">    <span class='keyword'>else</span> {</td></tr>
+<tr><td class="num" id="LN328">328</td><td class="line">        ret = sws_scale(upipe_sws-&gt;convert_ctx[1],</td></tr>
+<tr><td class="num" id="LN329">329</td><td class="line">                        input_planes, input_strides, 0, (input_vsize+1)/2,</td></tr>
+<tr><td class="num" id="LN330">330</td><td class="line">                        output_planes, output_strides);</td></tr>
+<tr><td class="num" id="LN331">331</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN332">332</td><td class="line">        <span class='keyword'>for</span> (i = 0; i &lt; <span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> &amp;&amp; input_planes[i]; i++) {</td></tr>
+<tr><td class="num" id="LN333">333</td><td class="line">                input_planes[i] += input_strides[i] &gt;&gt; 1;</td></tr>
+<tr><td class="num" id="LN334">334</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN335">335</td><td class="line">        <span class='keyword'>for</span> (i = 0; i &lt; <span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> &amp;&amp; output_planes[i]; i++) {</td></tr>
+<tr><td class="num" id="LN336">336</td><td class="line">                output_planes[i] += output_strides[i] &gt;&gt; 1;</td></tr>
+<tr><td class="num" id="LN337">337</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN338">338</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN339">339</td><td class="line">        ret2 = sws_scale(upipe_sws-&gt;convert_ctx[2],</td></tr>
+<tr><td class="num" id="LN340">340</td><td class="line">                         input_planes, input_strides, 0, input_vsize/2,</td></tr>
+<tr><td class="num" id="LN341">341</td><td class="line">                         output_planes, output_strides);</td></tr>
+<tr><td class="num" id="LN342">342</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN343">343</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN344">344</td><td class="line">    <span class='comment'>/* unmap pictures */</span></td></tr>
+<tr><td class="num" id="LN345">345</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; <span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> &amp;&amp;</td></tr>
+<tr><td class="num" id="LN346">346</td><td class="line">                upipe_sws-&gt;input_chroma_map[i] != <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>; i++)</td></tr>
+<tr><td class="num" id="LN347">347</td><td class="line">        uref_pic_plane_unmap(uref, upipe_sws-&gt;input_chroma_map[i],</td></tr>
+<tr><td class="num" id="LN348">348</td><td class="line">                             0, 0, -1, -1);</td></tr>
+<tr><td class="num" id="LN349">349</td><td class="line">    <span class='keyword'>for</span> (i = 0; i &lt; <span class='macro'>UPIPE_AV_MAX_PLANES<span class='expansion'>5</span></span> &amp;&amp;</td></tr>
+<tr><td class="num" id="LN350">350</td><td class="line">                upipe_sws-&gt;output_chroma_map[i] != <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>; i++)</td></tr>
+<tr><td class="num" id="LN351">351</td><td class="line">        ubuf_pic_plane_unmap(ubuf, upipe_sws-&gt;output_chroma_map[i],</td></tr>
+<tr><td class="num" id="LN352">352</td><td class="line">                             0, 0, -1, -1);</td></tr>
+<tr><td class="num" id="LN353">353</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN354">354</td><td class="line">    <span class='comment'>/* clean and attach */</span></td></tr>
+<tr><td class="num" id="LN355">355</td><td class="line">    <span class='keyword'>if</span> (<span class='macro'>unlikely(ret &lt;= 0)<span class='expansion'>__builtin_expect(!!(ret &lt;= 0),0)</span></span> || <span class='macro'>unlikely(ret2 &lt;= 0)<span class='expansion'>__builtin_expect(!!(ret2 &lt;= 0),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN356">356</td><td class="line">        <span class='macro'>upipe_warn(upipe, <span class='string_literal'>"error during sws conversion"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_WARNING, "error during sws conversion"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN357">357</td><td class="line">        ubuf_free(ubuf);</td></tr>
+<tr><td class="num" id="LN358">358</td><td class="line">        uref_free(uref);</td></tr>
+<tr><td class="num" id="LN359">359</td><td class="line">        <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN360">360</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN361">361</td><td class="line">    uref_attach_ubuf(uref, ubuf);</td></tr>
+<tr><td class="num" id="LN362">362</td><td class="line">    upipe_sws_output(upipe, uref, upump_p);</td></tr>
+<tr><td class="num" id="LN363">363</td><td class="line">    <span class='keyword'>return</span> <span class='macro'>true<span class='expansion'>1</span></span>;</td></tr>
+<tr><td class="num" id="LN364">364</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN365">365</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN366">366</td><td class="line"><span class='comment'>/** @internal @This receives incoming uref.</span></td></tr>
+<tr><td class="num" id="LN367">367</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN368">368</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN369">369</td><td class="line"> <span class='comment'>* @param uref uref structure describing the picture</span></td></tr>
+<tr><td class="num" id="LN370">370</td><td class="line"> <span class='comment'>* @param upump_p reference to pump that generated the buffer</span></td></tr>
+<tr><td class="num" id="LN371">371</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN372">372</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>void</span> upipe_sws_input(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>struct</span> uref *uref,</td></tr>
+<tr><td class="num" id="LN373">373</td><td class="line">                            <span class='keyword'>struct</span> upump **upump_p)</td></tr>
+<tr><td class="num" id="LN374">374</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN375">375</td><td class="line">    <span class='keyword'>if</span> (!upipe_sws_check_input(upipe)) {</td></tr>
+<tr><td class="num" id="LN376">376</td><td class="line">        upipe_sws_hold_input(upipe, uref);</td></tr>
+<tr><td class="num" id="LN377">377</td><td class="line">        upipe_sws_block_input(upipe, upump_p);</td></tr>
+<tr><td class="num" id="LN378">378</td><td class="line">    } <span class='keyword'>else</span> <span class='keyword'>if</span> (!upipe_sws_handle(upipe, uref, upump_p)) {</td></tr>
+<tr><td class="num" id="LN379">379</td><td class="line">        upipe_sws_hold_input(upipe, uref);</td></tr>
+<tr><td class="num" id="LN380">380</td><td class="line">        upipe_sws_block_input(upipe, upump_p);</td></tr>
+<tr><td class="num" id="LN381">381</td><td class="line">        <span class='comment'>/* Increment upipe refcount to avoid disappearing before all packets</span></td></tr>
+<tr><td class="num" id="LN382">382</td><td class="line">         <span class='comment'>* have been sent. */</span></td></tr>
+<tr><td class="num" id="LN383">383</td><td class="line">        upipe_use(upipe);</td></tr>
+<tr><td class="num" id="LN384">384</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN385">385</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN386">386</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN387">387</td><td class="line"><span class='comment'>/** @internal @This receives a provided ubuf manager.</span></td></tr>
+<tr><td class="num" id="LN388">388</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN389">389</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN390">390</td><td class="line"> <span class='comment'>* @param flow_format amended flow format</span></td></tr>
+<tr><td class="num" id="LN391">391</td><td class="line"> <span class='comment'>* @return an error code</span></td></tr>
+<tr><td class="num" id="LN392">392</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN393">393</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> upipe_sws_check(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>struct</span> uref *flow_format)</td></tr>
+<tr><td class="num" id="LN394">394</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN395">395</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN396">396</td><td class="line">    <span class='keyword'>if</span> (flow_format != <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>)</td></tr>
+<tr><td class="num" id="LN397">397</td><td class="line">        upipe_sws_store_flow_def(upipe, flow_format);</td></tr>
+<tr><td class="num" id="LN398">398</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN399">399</td><td class="line">    <span class='keyword'>if</span> (upipe_sws-&gt;flow_def == <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>)</td></tr>
+<tr><td class="num" id="LN400">400</td><td class="line">        <span class='keyword'>return</span> UBASE_ERR_NONE;</td></tr>
+<tr><td class="num" id="LN401">401</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN402">402</td><td class="line">    <span class='macro'>bool<span class='expansion'>_Bool</span></span> was_buffered = !upipe_sws_check_input(upipe);</td></tr>
+<tr><td class="num" id="LN403">403</td><td class="line">    upipe_sws_output_input(upipe);</td></tr>
+<tr><td class="num" id="LN404">404</td><td class="line">    upipe_sws_unblock_input(upipe);</td></tr>
+<tr><td class="num" id="LN405">405</td><td class="line">    <span class='keyword'>if</span> (was_buffered &amp;&amp; upipe_sws_check_input(upipe)) {</td></tr>
+<tr><td class="num" id="LN406">406</td><td class="line">        <span class='comment'>/* All packets have been output, release again the pipe that has been</span></td></tr>
+<tr><td class="num" id="LN407">407</td><td class="line">         <span class='comment'>* used in @ref upipe_sws_input. */</span></td></tr>
+<tr><td class="num" id="LN408">408</td><td class="line">        upipe_release(upipe);</td></tr>
+<tr><td class="num" id="LN409">409</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN410">410</td><td class="line">    <span class='keyword'>return</span> UBASE_ERR_NONE;</td></tr>
+<tr><td class="num" id="LN411">411</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN412">412</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN413">413</td><td class="line"><span class='comment'>/** @internal @This requires a ubuf manager by proxy, and amends the flow</span></td></tr>
+<tr><td class="num" id="LN414">414</td><td class="line"> <span class='comment'>* format.</span></td></tr>
+<tr><td class="num" id="LN415">415</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN416">416</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN417">417</td><td class="line"> <span class='comment'>* @param request description structure of the request</span></td></tr>
+<tr><td class="num" id="LN418">418</td><td class="line"> <span class='comment'>* @return an error code</span></td></tr>
+<tr><td class="num" id="LN419">419</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN420">420</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> upipe_sws_amend_ubuf_mgr(<span class='keyword'>struct</span> upipe *upipe,</td></tr>
+<tr><td class="num" id="LN421">421</td><td class="line">                                    <span class='keyword'>struct</span> urequest *request)</td></tr>
+<tr><td class="num" id="LN422">422</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN423">423</td><td class="line">    <span class='keyword'>struct</span> uref *flow_format = uref_dup(request-&gt;uref);</td></tr>
+<tr><td class="num" id="LN424">424</td><td class="line">    <span class='macro'>UBASE_ALLOC_RETURN(flow_format)<span class='expansion'>if (__builtin_expect(!!(flow_format == ((void*)0)),0)) return<br> UBASE_ERR_ALLOC;</span></span>;</td></tr>
+<tr><td class="num" id="LN425">425</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN426">426</td><td class="line">    uint64_t align;</td></tr>
+<tr><td class="num" id="LN427">427</td><td class="line">    <span class='keyword'>if</span> (!ubase_check(uref_pic_flow_get_align(flow_format, &amp;align)) || !align)</td></tr>
+<tr><td class="num" id="LN428">428</td><td class="line">        uref_pic_flow_set_align(flow_format, 16);</td></tr>
+<tr><td class="num" id="LN429">429</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN430">430</td><td class="line">    <span class='keyword'>if</span> (align % 16) {</td></tr>
+<tr><td class="num" id="LN431">431</td><td class="line">        align = align * 16 / ubase_gcd(align, 16);</td></tr>
+<tr><td class="num" id="LN432">432</td><td class="line">        uref_pic_flow_set_align(flow_format, align);</td></tr>
+<tr><td class="num" id="LN433">433</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN434">434</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN435">435</td><td class="line">    <span class='keyword'>struct</span> urequest ubuf_mgr_request;</td></tr>
+<tr><td class="num" id="LN436">436</td><td class="line">    urequest_set_opaque(&amp;ubuf_mgr_request, request);</td></tr>
+<tr><td class="num" id="LN437">437</td><td class="line">    urequest_init_ubuf_mgr(&amp;ubuf_mgr_request, flow_format,</td></tr>
+<tr><td class="num" id="LN438">438</td><td class="line">                           upipe_sws_provide_output_proxy, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>);</td></tr>
+<tr><td class="num" id="LN439">439</td><td class="line">    upipe_throw_provide_request(upipe, &amp;ubuf_mgr_request);</td></tr>
+<tr><td class="num" id="LN440">440</td><td class="line">    urequest_clean(&amp;ubuf_mgr_request);</td></tr>
+<tr><td class="num" id="LN441">441</td><td class="line">    <span class='keyword'>return</span> UBASE_ERR_NONE;</td></tr>
+<tr><td class="num" id="LN442">442</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN443">443</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN444">444</td><td class="line"><span class='comment'>/** @internal @This sets the input flow definition.</span></td></tr>
+<tr><td class="num" id="LN445">445</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN446">446</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN447">447</td><td class="line"> <span class='comment'>* @param flow_def flow definition packet</span></td></tr>
+<tr><td class="num" id="LN448">448</td><td class="line"> <span class='comment'>* @return an error code</span></td></tr>
+<tr><td class="num" id="LN449">449</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN450">450</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> upipe_sws_set_flow_def(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>struct</span> uref *flow_def)</td></tr>
+<tr><td class="num" id="LN451">451</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN452">452</td><td class="line">    <span class='keyword'>if</span> (flow_def == <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>)</td></tr>
+<tr><td class="num" id="LN453">453</td><td class="line">        <span class='keyword'>return</span> UBASE_ERR_INVALID;</td></tr>
+<tr><td class="num" id="LN454">454</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN455">455</td><td class="line">    <span class='macro'>UBASE_RETURN(uref_flow_match_def(flow_def, <span class='string_literal'>"pic."</span>))<span class='expansion'>do { int ubase_err_tmp = uref_flow_match_def(flow_def, "pic."<br>); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp)),0)) return<br> ubase_err_tmp; } while (0);</span></span></td></tr>
+<tr><td class="num" id="LN456">456</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN457">457</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN458">458</td><td class="line">    <span class='keyword'>if</span> ((upipe_sws-&gt;input_pix_fmt =</td></tr>
+<tr><td class="num" id="LN459">459</td><td class="line">                upipe_av_pixfmt_from_flow_def(flow_def, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>,</td></tr>
+<tr><td class="num" id="LN460">460</td><td class="line">                            upipe_sws-&gt;input_chroma_map)) == AV_PIX_FMT_NONE ||</td></tr>
+<tr><td class="num" id="LN461">461</td><td class="line">        !sws_isSupportedInput(upipe_sws-&gt;input_pix_fmt)) {</td></tr>
+<tr><td class="num" id="LN462">462</td><td class="line">        <span class='macro'>upipe_err(upipe, <span class='string_literal'>"incompatible flow def"</span>)<span class='expansion'>uprobe_log((upipe)-&gt;uprobe, upipe, UPROBE_LOG_ERROR, "incompatible flow def"<br>)</span></span>;</td></tr>
+<tr><td class="num" id="LN463">463</td><td class="line">        uref_dump(flow_def, upipe-&gt;uprobe);</td></tr>
+<tr><td class="num" id="LN464">464</td><td class="line">        <span class='keyword'>return</span> UBASE_ERR_EXTERNAL;</td></tr>
+<tr><td class="num" id="LN465">465</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN466">466</td><td class="line">    upipe_sws-&gt;input_colorspace = upipe_sws_convert_color(upipe, flow_def);</td></tr>
+<tr><td class="num" id="LN467">467</td><td class="line">    upipe_sws-&gt;input_color_range =</td></tr>
+<tr><td class="num" id="LN468">468</td><td class="line">        ubase_check(uref_pic_flow_get_full_range(flow_def)) ? 1 : 0;</td></tr>
+<tr><td class="num" id="LN469">469</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN470">470</td><td class="line">    flow_def = uref_dup(flow_def);</td></tr>
+<tr><td class="num" id="LN471">471</td><td class="line">    <span class='keyword'>if</span> (<span class='macro'>unlikely(flow_def == NULL)<span class='expansion'>__builtin_expect(!!(flow_def == ((void*)0)),0)</span></span>) {</td></tr>
+<tr><td class="num" id="LN472">472</td><td class="line">        <span class='macro'>upipe_throw_fatal(upipe, UBASE_ERR_ALLOC)<span class='expansion'>do { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 472, UBASE_ERR_ALLOC); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, UBASE_ERR_ALLOC); } while (0)</span></span>;</td></tr>
+<tr><td class="num" id="LN473">473</td><td class="line">        <span class='keyword'>return</span> UBASE_ERR_ALLOC;</td></tr>
+<tr><td class="num" id="LN474">474</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN475">475</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN476">476</td><td class="line">    uint64_t input_hsize, input_vsize, output_hsize, output_vsize;</td></tr>
+<tr><td class="num" id="LN477">477</td><td class="line">    <span class='keyword'>if</span> (ubase_check(uref_pic_flow_get_hsize(flow_def, &amp;input_hsize)) &amp;&amp;</td></tr>
+<tr><td class="num" id="LN478">478</td><td class="line">        ubase_check(uref_pic_flow_get_vsize(flow_def, &amp;input_vsize)) &amp;&amp;</td></tr>
+<tr><td class="num" id="LN479">479</td><td class="line">        ubase_check(uref_pic_flow_get_hsize(upipe_sws-&gt;flow_def_attr,</td></tr>
+<tr><td class="num" id="LN480">480</td><td class="line">                                            &amp;output_hsize)) &amp;&amp;</td></tr>
+<tr><td class="num" id="LN481">481</td><td class="line">        ubase_check(uref_pic_flow_get_vsize(upipe_sws-&gt;flow_def_attr,</td></tr>
+<tr><td class="num" id="LN482">482</td><td class="line">                                            &amp;output_vsize)) &amp;&amp;</td></tr>
+<tr><td class="num" id="LN483">483</td><td class="line">        (input_hsize != output_hsize || input_vsize != output_vsize)) {</td></tr>
+<tr><td class="num" id="LN484">484</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN485">485</td><td class="line">        uint64_t hsize_visible;</td></tr>
+<tr><td class="num" id="LN486">486</td><td class="line">        <span class='keyword'>if</span> (input_hsize != output_hsize &amp;&amp;</td></tr>
+<tr><td class="num" id="LN487">487</td><td class="line">            ubase_check(uref_pic_flow_get_hsize_visible(flow_def,</td></tr>
+<tr><td class="num" id="LN488">488</td><td class="line">                                                        &amp;hsize_visible))) {</td></tr>
+<tr><td class="num" id="LN489">489</td><td class="line">            hsize_visible *= output_hsize;</td></tr>
+<tr><td class="num" id="LN490">490</td><td class="line">            hsize_visible /= input_hsize;</td></tr>
+<tr><td class="num" id="LN491">491</td><td class="line">            <span class='macro'>UBASE_FATAL(upipe, uref_pic_flow_set_hsize_visible(flow_def,<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_hsize_visible(flow_def<br>, hsize_visible); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) do { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 492, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
+<tr><td class="num" id="LN492">492</td><td class="line">                        <span class='macro'>hsize_visible))<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_hsize_visible(flow_def<br>, hsize_visible); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) do { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 492, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
+<tr><td class="num" id="LN493">493</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN494">494</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN495">495</td><td class="line">        uint64_t vsize_visible;</td></tr>
+<tr><td class="num" id="LN496">496</td><td class="line">        <span class='keyword'>if</span> (input_vsize != output_vsize &amp;&amp;</td></tr>
+<tr><td class="num" id="LN497">497</td><td class="line">            ubase_check(uref_pic_flow_get_vsize_visible(flow_def,</td></tr>
+<tr><td class="num" id="LN498">498</td><td class="line">                                                        &amp;vsize_visible))) {</td></tr>
+<tr><td class="num" id="LN499">499</td><td class="line">            vsize_visible *= output_vsize;</td></tr>
+<tr><td class="num" id="LN500">500</td><td class="line">            vsize_visible /= input_vsize;</td></tr>
+<tr><td class="num" id="LN501">501</td><td class="line">            <span class='macro'>UBASE_FATAL(upipe, uref_pic_flow_set_vsize_visible(flow_def,<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_vsize_visible(flow_def<br>, vsize_visible); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) do { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 502, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
+<tr><td class="num" id="LN502">502</td><td class="line">                        <span class='macro'>vsize_visible))<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_vsize_visible(flow_def<br>, vsize_visible); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp<br>)),0)) do { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 502, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
+<tr><td class="num" id="LN503">503</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN504">504</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN505">505</td><td class="line">        <span class='keyword'>struct</span> urational sar;</td></tr>
+<tr><td class="num" id="LN506">506</td><td class="line">        <span class='keyword'>if</span> (!ubase_check(uref_pic_flow_get_sar(upipe_sws-&gt;flow_def_attr,</td></tr>
+<tr><td class="num" id="LN507">507</td><td class="line">                                               &amp;sar)) &amp;&amp;</td></tr>
+<tr><td class="num" id="LN508">508</td><td class="line">            ubase_check(uref_pic_flow_get_sar(flow_def, &amp;sar))) {</td></tr>
+<tr><td class="num" id="LN509">509</td><td class="line">            sar.num *= input_hsize * output_vsize;</td></tr>
+<tr><td class="num" id="LN510">510</td><td class="line">            sar.den *= input_vsize * output_hsize;</td></tr>
+<tr><td class="num" id="LN511">511</td><td class="line">            urational_simplify(&amp;sar);</td></tr>
+<tr><td class="num" id="LN512">512</td><td class="line">            <span class='macro'>UBASE_FATAL(upipe, uref_pic_flow_set_sar(flow_def, sar))<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_sar(flow_def, sar)<br>; if (__builtin_expect(!!(!ubase_check(ubase_err_tmp)),0)) do<br> { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 512, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
+<tr><td class="num" id="LN513">513</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN514">514</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN515">515</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN516">516</td><td class="line">    <span class='keyword'>if</span> (upipe_sws-&gt;input_pix_fmt == AV_PIX_FMT_YUV420P) {</td></tr>
+<tr><td class="num" id="LN517">517</td><td class="line">        av_opt_set_int(upipe_sws-&gt;convert_ctx[0], <span class='string_literal'>"src_v_chr_pos"</span>, 128, 0);</td></tr>
+<tr><td class="num" id="LN518">518</td><td class="line">        av_opt_set_int(upipe_sws-&gt;convert_ctx[1], <span class='string_literal'>"src_v_chr_pos"</span>, 64, 0);</td></tr>
+<tr><td class="num" id="LN519">519</td><td class="line">        av_opt_set_int(upipe_sws-&gt;convert_ctx[2], <span class='string_literal'>"src_v_chr_pos"</span>, 192, 0);</td></tr>
+<tr><td class="num" id="LN520">520</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN521">521</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN522">522</td><td class="line">    <span class='keyword'>if</span> (upipe_sws-&gt;output_pix_fmt == AV_PIX_FMT_YUV420P) {</td></tr>
+<tr><td class="num" id="LN523">523</td><td class="line">        av_opt_set_int(upipe_sws-&gt;convert_ctx[0], <span class='string_literal'>"dst_v_chr_pos"</span>, 128, 0);</td></tr>
+<tr><td class="num" id="LN524">524</td><td class="line">        av_opt_set_int(upipe_sws-&gt;convert_ctx[1], <span class='string_literal'>"dst_v_chr_pos"</span>, 64, 0);</td></tr>
+<tr><td class="num" id="LN525">525</td><td class="line">        av_opt_set_int(upipe_sws-&gt;convert_ctx[2], <span class='string_literal'>"dst_v_chr_pos"</span>, 192, 0);</td></tr>
+<tr><td class="num" id="LN526">526</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN527">527</td><td class="line">    upipe_sws-&gt;colorspace_invalid = <span class='macro'>false<span class='expansion'>0</span></span>;</td></tr>
+<tr><td class="num" id="LN528">528</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN529">529</td><td class="line">    upipe_input(upipe, flow_def, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>);</td></tr>
+<tr><td class="num" id="LN530">530</td><td class="line">    <span class='keyword'>return</span> UBASE_ERR_NONE;</td></tr>
+<tr><td class="num" id="LN531">531</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN532">532</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN533">533</td><td class="line"><span class='comment'>/** @internal @This gets the swscale flags.</span></td></tr>
+<tr><td class="num" id="LN534">534</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN535">535</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN536">536</td><td class="line"> <span class='comment'>* @param flags_p filled in with the swscale flags</span></td></tr>
+<tr><td class="num" id="LN537">537</td><td class="line"> <span class='comment'>* @return an error code</span></td></tr>
+<tr><td class="num" id="LN538">538</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN539">539</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> _upipe_sws_get_flags(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>int</span> *flags_p)</td></tr>
+<tr><td class="num" id="LN540">540</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN541">541</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN542">542</td><td class="line">    *flags_p = upipe_sws-&gt;flags;</td></tr>
+<tr><td class="num" id="LN543">543</td><td class="line">    <span class='keyword'>return</span> UBASE_ERR_NONE;</td></tr>
+<tr><td class="num" id="LN544">544</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN545">545</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN546">546</td><td class="line"><span class='comment'>/** @internal @This sets the swscale flags.</span></td></tr>
+<tr><td class="num" id="LN547">547</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN548">548</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN549">549</td><td class="line"> <span class='comment'>* @param flags swscale flags</span></td></tr>
+<tr><td class="num" id="LN550">550</td><td class="line"> <span class='comment'>* @return an error code</span></td></tr>
+<tr><td class="num" id="LN551">551</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN552">552</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> _upipe_sws_set_flags(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>int</span> flags)</td></tr>
+<tr><td class="num" id="LN553">553</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN554">554</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN555">555</td><td class="line">    upipe_sws-&gt;flags = flags;</td></tr>
+<tr><td class="num" id="LN556">556</td><td class="line">    upipe_dbg_va(upipe, <span class='string_literal'>"setting flags to %d"</span>, flags);</td></tr>
+<tr><td class="num" id="LN557">557</td><td class="line">    <span class='keyword'>return</span> UBASE_ERR_NONE;</td></tr>
+<tr><td class="num" id="LN558">558</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN559">559</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN560">560</td><td class="line"><span class='comment'>/** @internal @This processes control commands on a file source pipe, and</span></td></tr>
+<tr><td class="num" id="LN561">561</td><td class="line"> <span class='comment'>* checks the status of the pipe afterwards.</span></td></tr>
+<tr><td class="num" id="LN562">562</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN563">563</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN564">564</td><td class="line"> <span class='comment'>* @param command type of command to process</span></td></tr>
+<tr><td class="num" id="LN565">565</td><td class="line"> <span class='comment'>* @param args arguments of the command</span></td></tr>
+<tr><td class="num" id="LN566">566</td><td class="line"> <span class='comment'>* @return an error code</span></td></tr>
+<tr><td class="num" id="LN567">567</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN568">568</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>int</span> upipe_sws_control(<span class='keyword'>struct</span> upipe *upipe, <span class='keyword'>int</span> command, va_list args)</td></tr>
+<tr><td class="num" id="LN569">569</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN570">570</td><td class="line">    <span class='keyword'>switch</span> (command) {</td></tr>
+<tr><td class="num" id="LN571">571</td><td class="line">        <span class='keyword'>case</span> UPIPE_REGISTER_REQUEST: {</td></tr>
+<tr><td class="num" id="LN572">572</td><td class="line">            <span class='keyword'>struct</span> urequest *request = <span class='macro'>va_arg(args, <span class='keyword'>struct</span> urequest *)<span class='expansion'>__builtin_va_arg(args, struct urequest *)</span></span>;</td></tr>
+<tr><td class="num" id="LN573">573</td><td class="line">            <span class='keyword'>if</span> (request-&gt;type == UREQUEST_UBUF_MGR)</td></tr>
+<tr><td class="num" id="LN574">574</td><td class="line">                <span class='keyword'>return</span> upipe_sws_amend_ubuf_mgr(upipe, request);</td></tr>
+<tr><td class="num" id="LN575">575</td><td class="line">            <span class='keyword'>if</span> (request-&gt;type == UREQUEST_FLOW_FORMAT)</td></tr>
+<tr><td class="num" id="LN576">576</td><td class="line">                <span class='keyword'>return</span> upipe_throw_provide_request(upipe, request);</td></tr>
+<tr><td class="num" id="LN577">577</td><td class="line">            <span class='keyword'>return</span> upipe_sws_alloc_output_proxy(upipe, request);</td></tr>
+<tr><td class="num" id="LN578">578</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN579">579</td><td class="line">        <span class='keyword'>case</span> UPIPE_UNREGISTER_REQUEST: {</td></tr>
+<tr><td class="num" id="LN580">580</td><td class="line">            <span class='keyword'>struct</span> urequest *request = <span class='macro'>va_arg(args, <span class='keyword'>struct</span> urequest *)<span class='expansion'>__builtin_va_arg(args, struct urequest *)</span></span>;</td></tr>
+<tr><td class="num" id="LN581">581</td><td class="line">            <span class='keyword'>if</span> (request-&gt;type == UREQUEST_UBUF_MGR ||</td></tr>
+<tr><td class="num" id="LN582">582</td><td class="line">                request-&gt;type == UREQUEST_FLOW_FORMAT)</td></tr>
+<tr><td class="num" id="LN583">583</td><td class="line">                <span class='keyword'>return</span> UBASE_ERR_NONE;</td></tr>
+<tr><td class="num" id="LN584">584</td><td class="line">            <span class='keyword'>return</span> upipe_sws_free_output_proxy(upipe, request);</td></tr>
+<tr><td class="num" id="LN585">585</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN586">586</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN587">587</td><td class="line">        <span class='keyword'>case</span> UPIPE_GET_OUTPUT: {</td></tr>
+<tr><td class="num" id="LN588">588</td><td class="line">            <span class='keyword'>struct</span> upipe **p = <span class='macro'>va_arg(args, <span class='keyword'>struct</span> upipe **)<span class='expansion'>__builtin_va_arg(args, struct upipe **)</span></span>;</td></tr>
+<tr><td class="num" id="LN589">589</td><td class="line">            <span class='keyword'>return</span> upipe_sws_get_output(upipe, p);</td></tr>
+<tr><td class="num" id="LN590">590</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN591">591</td><td class="line">        <span class='keyword'>case</span> UPIPE_SET_OUTPUT: {</td></tr>
+<tr><td class="num" id="LN592">592</td><td class="line">            <span class='keyword'>struct</span> upipe *output = <span class='macro'>va_arg(args, <span class='keyword'>struct</span> upipe *)<span class='expansion'>__builtin_va_arg(args, struct upipe *)</span></span>;</td></tr>
+<tr><td class="num" id="LN593">593</td><td class="line">            <span class='keyword'>return</span> upipe_sws_set_output(upipe, output);</td></tr>
+<tr><td class="num" id="LN594">594</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN595">595</td><td class="line">        <span class='keyword'>case</span> UPIPE_GET_FLOW_DEF: {</td></tr>
+<tr><td class="num" id="LN596">596</td><td class="line">            <span class='keyword'>struct</span> uref **p = <span class='macro'>va_arg(args, <span class='keyword'>struct</span> uref **)<span class='expansion'>__builtin_va_arg(args, struct uref **)</span></span>;</td></tr>
+<tr><td class="num" id="LN597">597</td><td class="line">            <span class='keyword'>return</span> upipe_sws_get_flow_def(upipe, p);</td></tr>
+<tr><td class="num" id="LN598">598</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN599">599</td><td class="line">        <span class='keyword'>case</span> UPIPE_SET_FLOW_DEF: {</td></tr>
+<tr><td class="num" id="LN600">600</td><td class="line">            <span class='keyword'>struct</span> uref *flow = <span class='macro'>va_arg(args, <span class='keyword'>struct</span> uref *)<span class='expansion'>__builtin_va_arg(args, struct uref *)</span></span>;</td></tr>
+<tr><td class="num" id="LN601">601</td><td class="line">            <span class='keyword'>return</span> upipe_sws_set_flow_def(upipe, flow);</td></tr>
+<tr><td class="num" id="LN602">602</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN603">603</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN604">604</td><td class="line">        <span class='comment'>/* specific commands */</span></td></tr>
+<tr><td class="num" id="LN605">605</td><td class="line">        <span class='keyword'>case</span> UPIPE_SWS_GET_FLAGS: {</td></tr>
+<tr><td class="num" id="LN606">606</td><td class="line">            <span class='macro'>UBASE_SIGNATURE_CHECK(args, UPIPE_SWS_SIGNATURE)<span class='expansion'>{ if (__builtin_va_arg(args, unsigned int) != (((uint32_t)'s'<br>) | (((uint32_t)'w') &lt;&lt; 8) | (((uint32_t)'s') &lt;&lt; 16<br>) | (((uint32_t)' ') &lt;&lt; 24))) return UBASE_ERR_UNHANDLED<br>; }</span></span></td></tr>
+<tr><td class="num" id="LN607">607</td><td class="line">            <span class='keyword'>int</span> *flags_p = <span class='macro'>va_arg(args, <span class='keyword'>int</span> *)<span class='expansion'>__builtin_va_arg(args, int *)</span></span>;</td></tr>
+<tr><td class="num" id="LN608">608</td><td class="line">            <span class='keyword'>return</span> _upipe_sws_get_flags(upipe, flags_p);</td></tr>
+<tr><td class="num" id="LN609">609</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN610">610</td><td class="line">        <span class='keyword'>case</span> UPIPE_SWS_SET_FLAGS: {</td></tr>
+<tr><td class="num" id="LN611">611</td><td class="line">            <span class='macro'>UBASE_SIGNATURE_CHECK(args, UPIPE_SWS_SIGNATURE)<span class='expansion'>{ if (__builtin_va_arg(args, unsigned int) != (((uint32_t)'s'<br>) | (((uint32_t)'w') &lt;&lt; 8) | (((uint32_t)'s') &lt;&lt; 16<br>) | (((uint32_t)' ') &lt;&lt; 24))) return UBASE_ERR_UNHANDLED<br>; }</span></span></td></tr>
+<tr><td class="num" id="LN612">612</td><td class="line">            <span class='keyword'>int</span> flags = <span class='macro'>va_arg(args, <span class='keyword'>int</span>)<span class='expansion'>__builtin_va_arg(args, int)</span></span>;</td></tr>
+<tr><td class="num" id="LN613">613</td><td class="line">            <span class='keyword'>return</span> _upipe_sws_set_flags(upipe, flags);</td></tr>
+<tr><td class="num" id="LN614">614</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN615">615</td><td class="line">        <span class='keyword'>default</span>:</td></tr>
+<tr><td class="num" id="LN616">616</td><td class="line">            <span class='keyword'>return</span> UBASE_ERR_UNHANDLED;</td></tr>
+<tr><td class="num" id="LN617">617</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN618">618</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN619">619</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN620">620</td><td class="line"><span class='comment'>/** @internal @This allocates a swscale pipe.</span></td></tr>
+<tr><td class="num" id="LN621">621</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN622">622</td><td class="line"> <span class='comment'>* @param mgr common management structure</span></td></tr>
+<tr><td class="num" id="LN623">623</td><td class="line"> <span class='comment'>* @param uprobe structure used to raise events</span></td></tr>
+<tr><td class="num" id="LN624">624</td><td class="line"> <span class='comment'>* @param signature signature of the pipe allocator</span></td></tr>
+<tr><td class="num" id="LN625">625</td><td class="line"> <span class='comment'>* @param args optional arguments</span></td></tr>
+<tr><td class="num" id="LN626">626</td><td class="line"> <span class='comment'>* @return pointer to upipe or NULL in case of allocation error</span></td></tr>
+<tr><td class="num" id="LN627">627</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN628">628</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>struct</span> upipe *upipe_sws_alloc(<span class='keyword'>struct</span> upipe_mgr *mgr,</td></tr>
+<tr><td class="num" id="LN629">629</td><td class="line">                                     <span class='keyword'>struct</span> uprobe *uprobe,</td></tr>
+<tr><td class="num" id="LN630">630</td><td class="line">                                     uint32_t signature, va_list args)</td></tr>
+<tr><td class="num" id="LN631">631</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN632">632</td><td class="line">    <span class='keyword'>struct</span> uref *flow_def;</td></tr>
+<tr><td class="num" id="LN633">633</td><td class="line">    <span class='keyword'>struct</span> upipe *upipe = <span class="mrange"><span class="mrange">upipe_sws_alloc_flow(mgr, uprobe, signature,</td></tr></span>
+<tr><td class="num"></td><td class="line"><div id="Path1" class="msg msgEvent" style="margin-left:27ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">1</div></td><td>Calling 'upipe_sws_alloc_flow'</td><td><div class="PathNav"><a href="#Path2" title="Next event (2)">&#x2192;</a></div></td></tr></table></div></td></tr></span>
+<tr><td class="num"></td><td class="line"><div id="Path3" class="msg msgEvent" style="margin-left:27ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">3</div></td><td><div class="PathNav"><a href="#Path2" title="Previous event (2)">&#x2190;</a></div></td></td><td>Returned allocated memory</td><td><div class="PathNav"><a href="#Path4" title="Next event (4)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN634">634</td><td class="line">                                               <span class="mrange"><span class="mrange">args, &amp;flow_def)</span></span>;</td></tr>
+<tr><td class="num" id="LN635">635</td><td class="line">    <span class='keyword'>if</span> (<span class='macro'>unlikely(upipe == NULL)<span class='expansion'>__builtin_expect(!!(upipe == ((void*)0)),0)</span></span>)</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path4" class="msg msgControl" style="margin-left:5ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">4</div></td><td><div class="PathNav"><a href="#Path3" title="Previous event (3)">&#x2190;</a></div></td></td><td>Taking false branch</td><td><div class="PathNav"><a href="#Path5" title="Next event (5)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN636">636</td><td class="line">        <span class='keyword'>return</span> <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN637">637</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN638">638</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN639">639</td><td class="line">    upipe_sws-&gt;output_pix_fmt = upipe_av_pixfmt_from_flow_def(flow_def, <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>,</td></tr>
+<tr><td class="num" id="LN640">640</td><td class="line">                                                 upipe_sws-&gt;output_chroma_map);</td></tr>
+<tr><td class="num" id="LN641">641</td><td class="line">    <span class='keyword'>if</span> (upipe_sws-&gt;output_pix_fmt == AV_PIX_FMT_NONE ||</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path5" class="msg msgControl" style="margin-left:5ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">5</div></td><td><div class="PathNav"><a href="#Path4" title="Previous event (4)">&#x2190;</a></div></td></td><td>Taking false branch</td><td><div class="PathNav"><a href="#Path6" title="Next event (6)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN642">642</td><td class="line">        !sws_isSupportedOutput(upipe_sws-&gt;output_pix_fmt)) {</td></tr>
+<tr><td class="num" id="LN643">643</td><td class="line">        uref_free(flow_def);</td></tr>
+<tr><td class="num" id="LN644">644</td><td class="line">        upipe_sws_free_flow(upipe);</td></tr>
+<tr><td class="num" id="LN645">645</td><td class="line">        <span class='keyword'>return</span> <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN646">646</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN647">647</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN648">648</td><td class="line">    upipe_sws_init_urefcount(upipe);</td></tr>
+<tr><td class="num" id="LN649">649</td><td class="line">    upipe_sws_init_ubuf_mgr(upipe);</td></tr>
+<tr><td class="num" id="LN650">650</td><td class="line">    upipe_sws_init_output(upipe);</td></tr>
+<tr><td class="num" id="LN651">651</td><td class="line">    upipe_sws_init_flow_def(upipe);</td></tr>
+<tr><td class="num" id="LN652">652</td><td class="line">    upipe_sws_init_input(upipe);</td></tr>
+<tr><td class="num" id="LN653">653</td><td class="line">    upipe_sws-&gt;colorspace_invalid = <span class='macro'>false<span class='expansion'>0</span></span>;</td></tr>
+<tr><td class="num" id="LN654">654</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN655">655</td><td class="line">    memset(upipe_sws-&gt;convert_ctx, 0, <span class='keyword'>sizeof</span>(upipe_sws-&gt;convert_ctx));</td></tr>
+<tr><td class="num" id="LN656">656</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path6" class="msg msgControl" style="margin-left:5ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">6</div></td><td><div class="PathNav"><a href="#Path5" title="Previous event (5)">&#x2190;</a></div></td></td><td>Loop condition is true.  Entering loop body</td><td><div class="PathNav"><a href="#Path7" title="Next event (7)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN657">657</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = sws_alloc_context();</td></tr>
+<tr><td class="num" id="LN658">658</td><td class="line">        <span class='keyword'>if</span> (!upipe_sws-&gt;convert_ctx[i]) {</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path7" class="msg msgControl" style="margin-left:9ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">7</div></td><td><div class="PathNav"><a href="#Path6" title="Previous event (6)">&#x2190;</a></div></td></td><td>Taking true branch</td><td><div class="PathNav"><a href="#Path8" title="Next event (8)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN659">659</td><td class="line">            uref_free(flow_def);</td></tr>
+<tr><td class="num" id="LN660">660</td><td class="line">            <span class="mrange"><span class="mrange">upipe_sws_free_flow(upipe)</span></span>;</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path8" class="msg msgEvent" style="margin-left:13ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">8</div></td><td><div class="PathNav"><a href="#Path7" title="Previous event (7)">&#x2190;</a></div></td></td><td>Calling 'upipe_sws_free_flow'</td><td><div class="PathNav"><a href="#Path9" title="Next event (9)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path10" class="msg msgEvent" style="margin-left:13ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">10</div></td><td><div class="PathNav"><a href="#Path9" title="Previous event (9)">&#x2190;</a></div></td></td><td>Returning; memory was released</td><td><div class="PathNav"><a href="#Path11" title="Next event (11)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN661">661</td><td class="line">            <span class='keyword'>goto</span> fail;</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path11" class="msg msgControl" style="margin-left:13ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">11</div></td><td><div class="PathNav"><a href="#Path10" title="Previous event (10)">&#x2190;</a></div></td></td><td>Control jumps to line 677</td><td><div class="PathNav"><a href="#Path12" title="Next event (12)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN662">662</td><td class="line">        }</td></tr>
+<tr><td class="num" id="LN663">663</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN664">664</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN665">665</td><td class="line">    upipe_sws-&gt;flags = <span class='macro'>SWS_FULL_CHR_H_INP<span class='expansion'>0x4000</span></span> | <span class='macro'>SWS_ACCURATE_RND<span class='expansion'>0x40000</span></span> | <span class='macro'>SWS_LANCZOS<span class='expansion'>0x200</span></span>;</td></tr>
+<tr><td class="num" id="LN666">666</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN667">667</td><td class="line">    upipe_throw_ready(upipe);</td></tr>
+<tr><td class="num" id="LN668">668</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN669">669</td><td class="line">    upipe_sws-&gt;output_colorspace = upipe_sws_convert_color(upipe, flow_def);</td></tr>
+<tr><td class="num" id="LN670">670</td><td class="line">    upipe_sws-&gt;output_color_range =</td></tr>
+<tr><td class="num" id="LN671">671</td><td class="line">        ubase_check(uref_pic_flow_get_full_range(flow_def)) ? 1 : 0;</td></tr>
+<tr><td class="num" id="LN672">672</td><td class="line">    <span class='macro'>UBASE_FATAL(upipe, uref_pic_flow_set_align(flow_def, 16))<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_align(flow_def, 16<br>); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp)),0)) do<br> { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 672, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
+<tr><td class="num" id="LN673">673</td><td class="line">    upipe_sws_store_flow_def_attr(upipe, flow_def);</td></tr>
+<tr><td class="num" id="LN674">674</td><td class="line">    <span class='keyword'>return</span> upipe;</td></tr>
+<tr><td class="num" id="LN675">675</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN676">676</td><td class="line">fail:</td></tr>
+<tr><td class="num" id="LN677">677</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
+<tr><td class="num"></td><td class="line"><div id="Path12" class="msg msgControl" style="margin-left:5ex"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">12</div></td><td><div class="PathNav"><a href="#Path11" title="Previous event (11)">&#x2190;</a></div></td></td><td>Loop condition is true.  Entering loop body</td><td><div class="PathNav"><a href="#EndPath" title="Next event (13)">&#x2192;</a></div></td></tr></table></div></td></tr>
+<tr><td class="num" id="LN678">678</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>likely(upipe_sws-&gt;convert_ctx[i])<span class='expansion'>__builtin_expect(!!(upipe_sws-&gt;convert_ctx[i]),1)</span></span>)</td></tr>
+<tr><td class="num"></td><td class="line"><div id="EndPath" class="msg msgControl" style="margin-left:13ex; max-width:100em"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexControl">13</div></td><td><div class="PathNav"><a href="#Path12" title="Previous event (12)">&#x2190;</a></div></td></td><td>Within the expansion of the macro 'likely':
+</td></tr></table><div class="msg msgEvent" style="width:94%; margin-left:5px"><table class="msgT"><tr><td valign="top"><div class="PathIndex PathIndexEvent">a</div></td><td valign="top">Use of memory after it is freed</td></tr></table></div>
+</div></td></tr>
+<tr><td class="num" id="LN679">679</td><td class="line">            sws_freeContext(upipe_sws-&gt;convert_ctx[i]);</td></tr>
+<tr><td class="num" id="LN680">680</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN681">681</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN682">682</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN683">683</td><td class="line">    <span class='keyword'>return</span> <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN684">684</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN685">685</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN686">686</td><td class="line"><span class='comment'>/** @This frees a upipe.</span></td></tr>
+<tr><td class="num" id="LN687">687</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN688">688</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN689">689</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN690">690</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>void</span> upipe_sws_free(<span class='keyword'>struct</span> upipe *upipe)</td></tr>
+<tr><td class="num" id="LN691">691</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN692">692</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN693">693</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
+<tr><td class="num" id="LN694">694</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>likely(upipe_sws-&gt;convert_ctx[i])<span class='expansion'>__builtin_expect(!!(upipe_sws-&gt;convert_ctx[i]),1)</span></span>)</td></tr>
+<tr><td class="num" id="LN695">695</td><td class="line">            sws_freeContext(upipe_sws-&gt;convert_ctx[i]);</td></tr>
+<tr><td class="num" id="LN696">696</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN697">697</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN698">698</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN699">699</td><td class="line">    upipe_throw_dead(upipe);</td></tr>
+<tr><td class="num" id="LN700">700</td><td class="line">    upipe_sws_clean_input(upipe);</td></tr>
+<tr><td class="num" id="LN701">701</td><td class="line">    upipe_sws_clean_output(upipe);</td></tr>
+<tr><td class="num" id="LN702">702</td><td class="line">    upipe_sws_clean_flow_def(upipe);</td></tr>
+<tr><td class="num" id="LN703">703</td><td class="line">    upipe_sws_clean_ubuf_mgr(upipe);</td></tr>
+<tr><td class="num" id="LN704">704</td><td class="line">    upipe_sws_clean_urefcount(upipe);</td></tr>
+<tr><td class="num" id="LN705">705</td><td class="line">    upipe_sws_free_flow(upipe);</td></tr>
+<tr><td class="num" id="LN706">706</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN707">707</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN708">708</td><td class="line"><span class='comment'>/** module manager static descriptor */</span></td></tr>
+<tr><td class="num" id="LN709">709</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>struct</span> upipe_mgr upipe_sws_mgr = {</td></tr>
+<tr><td class="num" id="LN710">710</td><td class="line">    .refcount = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>,</td></tr>
+<tr><td class="num" id="LN711">711</td><td class="line">    .signature = <span class='macro'>UPIPE_SWS_SIGNATURE<span class='expansion'>(((uint32_t)'s') | (((uint32_t)'w') &lt;&lt; 8) | (((uint32_t<br>)'s') &lt;&lt; 16) | (((uint32_t)' ') &lt;&lt; 24))</span></span>,</td></tr>
+<tr><td class="num" id="LN712">712</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN713">713</td><td class="line">    .upipe_alloc = upipe_sws_alloc,</td></tr>
+<tr><td class="num" id="LN714">714</td><td class="line">    .upipe_input = upipe_sws_input,</td></tr>
+<tr><td class="num" id="LN715">715</td><td class="line">    .upipe_control = upipe_sws_control,</td></tr>
+<tr><td class="num" id="LN716">716</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN717">717</td><td class="line">    .upipe_mgr_control = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span></td></tr>
+<tr><td class="num" id="LN718">718</td><td class="line">};</td></tr>
+<tr><td class="num" id="LN719">719</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN720">720</td><td class="line"><span class='comment'>/** @This returns the management structure for swscale pipes</span></td></tr>
+<tr><td class="num" id="LN721">721</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN722">722</td><td class="line"> <span class='comment'>* @return pointer to manager</span></td></tr>
+<tr><td class="num" id="LN723">723</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN724">724</td><td class="line"><span class='keyword'>struct</span> upipe_mgr *upipe_sws_mgr_alloc(<span class='keyword'>void</span>)</td></tr>
+<tr><td class="num" id="LN725">725</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN726">726</td><td class="line">    <span class='keyword'>return</span> &amp;upipe_sws_mgr;</td></tr>
+<tr><td class="num" id="LN727">727</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN728">728</td><td class="line"> </td></tr>
+</table></body></html>
