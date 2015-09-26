@@ -780,75 +780,73 @@
 <tr><td class="num" id="LN655">655</td><td class="line">    memset(upipe_sws-&gt;convert_ctx, 0, <span class='keyword'>sizeof</span>(upipe_sws-&gt;convert_ctx));</td></tr>
 <tr><td class="num" id="LN656">656</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
 <tr><td class="num" id="LN657">657</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = sws_alloc_context();</td></tr>
-<tr><td class="num" id="LN658">658</td><td class="line">        <span class='keyword'>if</span> (!upipe_sws-&gt;convert_ctx[i]) {</td></tr>
-<tr><td class="num" id="LN659">659</td><td class="line">            uref_free(flow_def);</td></tr>
-<tr><td class="num" id="LN660">660</td><td class="line">            upipe_sws_free_flow(upipe);</td></tr>
-<tr><td class="num" id="LN661">661</td><td class="line">            <span class='keyword'>goto</span> fail;</td></tr>
-<tr><td class="num" id="LN662">662</td><td class="line">        }</td></tr>
-<tr><td class="num" id="LN663">663</td><td class="line">    }</td></tr>
-<tr><td class="num" id="LN664">664</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN665">665</td><td class="line">    upipe_sws-&gt;flags = <span class='macro'>SWS_FULL_CHR_H_INP<span class='expansion'>0x4000</span></span> | <span class='macro'>SWS_ACCURATE_RND<span class='expansion'>0x40000</span></span> | <span class='macro'>SWS_LANCZOS<span class='expansion'>0x200</span></span>;</td></tr>
-<tr><td class="num" id="LN666">666</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN667">667</td><td class="line">    upipe_throw_ready(upipe);</td></tr>
-<tr><td class="num" id="LN668">668</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN669">669</td><td class="line">    upipe_sws-&gt;output_colorspace = upipe_sws_convert_color(upipe, flow_def);</td></tr>
-<tr><td class="num" id="LN670">670</td><td class="line">    upipe_sws-&gt;output_color_range =</td></tr>
-<tr><td class="num" id="LN671">671</td><td class="line">        ubase_check(uref_pic_flow_get_full_range(flow_def)) ? 1 : 0;</td></tr>
-<tr><td class="num" id="LN672">672</td><td class="line">    <span class='macro'>UBASE_FATAL(upipe, uref_pic_flow_set_align(flow_def, 16))<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_align(flow_def, 16<br>); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp)),0)) do<br> { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 672, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
-<tr><td class="num" id="LN673">673</td><td class="line">    upipe_sws_store_flow_def_attr(upipe, flow_def);</td></tr>
-<tr><td class="num" id="LN674">674</td><td class="line">    <span class='keyword'>return</span> upipe;</td></tr>
-<tr><td class="num" id="LN675">675</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN676">676</td><td class="line">fail:</td></tr>
-<tr><td class="num" id="LN677">677</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
-<tr><td class="num" id="LN678">678</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>likely(upipe_sws-&gt;convert_ctx[i])<span class='expansion'>__builtin_expect(!!(upipe_sws-&gt;convert_ctx[i]),1)</span></span>)</td></tr>
-<tr><td class="num" id="LN679">679</td><td class="line">            sws_freeContext(upipe_sws-&gt;convert_ctx[i]);</td></tr>
-<tr><td class="num" id="LN680">680</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
-<tr><td class="num" id="LN681">681</td><td class="line">    }</td></tr>
-<tr><td class="num" id="LN682">682</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN683">683</td><td class="line">    <span class='keyword'>return</span> <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
-<tr><td class="num" id="LN684">684</td><td class="line">}</td></tr>
-<tr><td class="num" id="LN685">685</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN686">686</td><td class="line"><span class='comment'>/** @This frees a upipe.</span></td></tr>
-<tr><td class="num" id="LN687">687</td><td class="line"> <span class='comment'>*</span></td></tr>
-<tr><td class="num" id="LN688">688</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
-<tr><td class="num" id="LN689">689</td><td class="line"> <span class='comment'>*/</span></td></tr>
-<tr><td class="num" id="LN690">690</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>void</span> upipe_sws_free(<span class='keyword'>struct</span> upipe *upipe)</td></tr>
-<tr><td class="num" id="LN691">691</td><td class="line">{</td></tr>
-<tr><td class="num" id="LN692">692</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
-<tr><td class="num" id="LN693">693</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
-<tr><td class="num" id="LN694">694</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>likely(upipe_sws-&gt;convert_ctx[i])<span class='expansion'>__builtin_expect(!!(upipe_sws-&gt;convert_ctx[i]),1)</span></span>)</td></tr>
-<tr><td class="num" id="LN695">695</td><td class="line">            sws_freeContext(upipe_sws-&gt;convert_ctx[i]);</td></tr>
-<tr><td class="num" id="LN696">696</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
-<tr><td class="num" id="LN697">697</td><td class="line">    }</td></tr>
-<tr><td class="num" id="LN698">698</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN699">699</td><td class="line">    upipe_throw_dead(upipe);</td></tr>
-<tr><td class="num" id="LN700">700</td><td class="line">    upipe_sws_clean_input(upipe);</td></tr>
-<tr><td class="num" id="LN701">701</td><td class="line">    upipe_sws_clean_output(upipe);</td></tr>
-<tr><td class="num" id="LN702">702</td><td class="line">    upipe_sws_clean_flow_def(upipe);</td></tr>
-<tr><td class="num" id="LN703">703</td><td class="line">    upipe_sws_clean_ubuf_mgr(upipe);</td></tr>
-<tr><td class="num" id="LN704">704</td><td class="line">    upipe_sws_clean_urefcount(upipe);</td></tr>
-<tr><td class="num" id="LN705">705</td><td class="line">    upipe_sws_free_flow(upipe);</td></tr>
-<tr><td class="num" id="LN706">706</td><td class="line">}</td></tr>
-<tr><td class="num" id="LN707">707</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN708">708</td><td class="line"><span class='comment'>/** module manager static descriptor */</span></td></tr>
-<tr><td class="num" id="LN709">709</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>struct</span> upipe_mgr upipe_sws_mgr = {</td></tr>
-<tr><td class="num" id="LN710">710</td><td class="line">    .refcount = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>,</td></tr>
-<tr><td class="num" id="LN711">711</td><td class="line">    .signature = <span class='macro'>UPIPE_SWS_SIGNATURE<span class='expansion'>(((uint32_t)'s') | (((uint32_t)'w') &lt;&lt; 8) | (((uint32_t<br>)'s') &lt;&lt; 16) | (((uint32_t)' ') &lt;&lt; 24))</span></span>,</td></tr>
-<tr><td class="num" id="LN712">712</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN713">713</td><td class="line">    .upipe_alloc = upipe_sws_alloc,</td></tr>
-<tr><td class="num" id="LN714">714</td><td class="line">    .upipe_input = upipe_sws_input,</td></tr>
-<tr><td class="num" id="LN715">715</td><td class="line">    .upipe_control = upipe_sws_control,</td></tr>
-<tr><td class="num" id="LN716">716</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN717">717</td><td class="line">    .upipe_mgr_control = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span></td></tr>
-<tr><td class="num" id="LN718">718</td><td class="line">};</td></tr>
-<tr><td class="num" id="LN719">719</td><td class="line"> </td></tr>
-<tr><td class="num" id="LN720">720</td><td class="line"><span class='comment'>/** @This returns the management structure for swscale pipes</span></td></tr>
-<tr><td class="num" id="LN721">721</td><td class="line"> <span class='comment'>*</span></td></tr>
-<tr><td class="num" id="LN722">722</td><td class="line"> <span class='comment'>* @return pointer to manager</span></td></tr>
-<tr><td class="num" id="LN723">723</td><td class="line"> <span class='comment'>*/</span></td></tr>
-<tr><td class="num" id="LN724">724</td><td class="line"><span class='keyword'>struct</span> upipe_mgr *upipe_sws_mgr_alloc(<span class='keyword'>void</span>)</td></tr>
-<tr><td class="num" id="LN725">725</td><td class="line">{</td></tr>
-<tr><td class="num" id="LN726">726</td><td class="line">    <span class='keyword'>return</span> &amp;upipe_sws_mgr;</td></tr>
-<tr><td class="num" id="LN727">727</td><td class="line">}</td></tr>
-<tr><td class="num" id="LN728">728</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN658">658</td><td class="line">        <span class='keyword'>if</span> (!upipe_sws-&gt;convert_ctx[i])</td></tr>
+<tr><td class="num" id="LN659">659</td><td class="line">            <span class='keyword'>goto</span> fail;</td></tr>
+<tr><td class="num" id="LN660">660</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN661">661</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN662">662</td><td class="line">    upipe_sws-&gt;flags = <span class='macro'>SWS_FULL_CHR_H_INP<span class='expansion'>0x4000</span></span> | <span class='macro'>SWS_ACCURATE_RND<span class='expansion'>0x40000</span></span> | <span class='macro'>SWS_LANCZOS<span class='expansion'>0x200</span></span>;</td></tr>
+<tr><td class="num" id="LN663">663</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN664">664</td><td class="line">    upipe_throw_ready(upipe);</td></tr>
+<tr><td class="num" id="LN665">665</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN666">666</td><td class="line">    upipe_sws-&gt;output_colorspace = upipe_sws_convert_color(upipe, flow_def);</td></tr>
+<tr><td class="num" id="LN667">667</td><td class="line">    upipe_sws-&gt;output_color_range =</td></tr>
+<tr><td class="num" id="LN668">668</td><td class="line">        ubase_check(uref_pic_flow_get_full_range(flow_def)) ? 1 : 0;</td></tr>
+<tr><td class="num" id="LN669">669</td><td class="line">    <span class='macro'>UBASE_FATAL(upipe, uref_pic_flow_set_align(flow_def, 16))<span class='expansion'>do { int ubase_err_tmp = uref_pic_flow_set_align(flow_def, 16<br>); if (__builtin_expect(!!(!ubase_check(ubase_err_tmp)),0)) do<br> { uprobe_err_va((upipe)-&gt;uprobe, upipe, "fatal error at %s:%d (0x%x)"<br>, "upipe_sws.c", 669, ubase_err_tmp); uprobe_throw((upipe)-&gt;<br>uprobe, upipe, UPROBE_FATAL, ubase_err_tmp); } while (0); } while<br> (0);</span></span></td></tr>
+<tr><td class="num" id="LN670">670</td><td class="line">    upipe_sws_store_flow_def_attr(upipe, flow_def);</td></tr>
+<tr><td class="num" id="LN671">671</td><td class="line">    <span class='keyword'>return</span> upipe;</td></tr>
+<tr><td class="num" id="LN672">672</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN673">673</td><td class="line">fail:</td></tr>
+<tr><td class="num" id="LN674">674</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
+<tr><td class="num" id="LN675">675</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>likely(upipe_sws-&gt;convert_ctx[i])<span class='expansion'>__builtin_expect(!!(upipe_sws-&gt;convert_ctx[i]),1)</span></span>)</td></tr>
+<tr><td class="num" id="LN676">676</td><td class="line">            sws_freeContext(upipe_sws-&gt;convert_ctx[i]);</td></tr>
+<tr><td class="num" id="LN677">677</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN678">678</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN679">679</td><td class="line">    uref_free(flow_def);</td></tr>
+<tr><td class="num" id="LN680">680</td><td class="line">    upipe_sws_free_flow(upipe);</td></tr>
+<tr><td class="num" id="LN681">681</td><td class="line">    <span class='keyword'>return</span> <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN682">682</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN683">683</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN684">684</td><td class="line"><span class='comment'>/** @This frees a upipe.</span></td></tr>
+<tr><td class="num" id="LN685">685</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN686">686</td><td class="line"> <span class='comment'>* @param upipe description structure of the pipe</span></td></tr>
+<tr><td class="num" id="LN687">687</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN688">688</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>void</span> upipe_sws_free(<span class='keyword'>struct</span> upipe *upipe)</td></tr>
+<tr><td class="num" id="LN689">689</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN690">690</td><td class="line">    <span class='keyword'>struct</span> upipe_sws *upipe_sws = upipe_sws_from_upipe(upipe);</td></tr>
+<tr><td class="num" id="LN691">691</td><td class="line">    <span class='keyword'>for</span> (<span class='keyword'>int</span> i = 0; i &lt; 3; i++) {</td></tr>
+<tr><td class="num" id="LN692">692</td><td class="line">        <span class='keyword'>if</span> (<span class='macro'>likely(upipe_sws-&gt;convert_ctx[i])<span class='expansion'>__builtin_expect(!!(upipe_sws-&gt;convert_ctx[i]),1)</span></span>)</td></tr>
+<tr><td class="num" id="LN693">693</td><td class="line">            sws_freeContext(upipe_sws-&gt;convert_ctx[i]);</td></tr>
+<tr><td class="num" id="LN694">694</td><td class="line">        upipe_sws-&gt;convert_ctx[i] = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>;</td></tr>
+<tr><td class="num" id="LN695">695</td><td class="line">    }</td></tr>
+<tr><td class="num" id="LN696">696</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN697">697</td><td class="line">    upipe_throw_dead(upipe);</td></tr>
+<tr><td class="num" id="LN698">698</td><td class="line">    upipe_sws_clean_input(upipe);</td></tr>
+<tr><td class="num" id="LN699">699</td><td class="line">    upipe_sws_clean_output(upipe);</td></tr>
+<tr><td class="num" id="LN700">700</td><td class="line">    upipe_sws_clean_flow_def(upipe);</td></tr>
+<tr><td class="num" id="LN701">701</td><td class="line">    upipe_sws_clean_ubuf_mgr(upipe);</td></tr>
+<tr><td class="num" id="LN702">702</td><td class="line">    upipe_sws_clean_urefcount(upipe);</td></tr>
+<tr><td class="num" id="LN703">703</td><td class="line">    upipe_sws_free_flow(upipe);</td></tr>
+<tr><td class="num" id="LN704">704</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN705">705</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN706">706</td><td class="line"><span class='comment'>/** module manager static descriptor */</span></td></tr>
+<tr><td class="num" id="LN707">707</td><td class="line"><span class='keyword'>static</span> <span class='keyword'>struct</span> upipe_mgr upipe_sws_mgr = {</td></tr>
+<tr><td class="num" id="LN708">708</td><td class="line">    .refcount = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span>,</td></tr>
+<tr><td class="num" id="LN709">709</td><td class="line">    .signature = <span class='macro'>UPIPE_SWS_SIGNATURE<span class='expansion'>(((uint32_t)'s') | (((uint32_t)'w') &lt;&lt; 8) | (((uint32_t<br>)'s') &lt;&lt; 16) | (((uint32_t)' ') &lt;&lt; 24))</span></span>,</td></tr>
+<tr><td class="num" id="LN710">710</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN711">711</td><td class="line">    .upipe_alloc = upipe_sws_alloc,</td></tr>
+<tr><td class="num" id="LN712">712</td><td class="line">    .upipe_input = upipe_sws_input,</td></tr>
+<tr><td class="num" id="LN713">713</td><td class="line">    .upipe_control = upipe_sws_control,</td></tr>
+<tr><td class="num" id="LN714">714</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN715">715</td><td class="line">    .upipe_mgr_control = <span class='macro'>NULL<span class='expansion'>((void*)0)</span></span></td></tr>
+<tr><td class="num" id="LN716">716</td><td class="line">};</td></tr>
+<tr><td class="num" id="LN717">717</td><td class="line"> </td></tr>
+<tr><td class="num" id="LN718">718</td><td class="line"><span class='comment'>/** @This returns the management structure for swscale pipes</span></td></tr>
+<tr><td class="num" id="LN719">719</td><td class="line"> <span class='comment'>*</span></td></tr>
+<tr><td class="num" id="LN720">720</td><td class="line"> <span class='comment'>* @return pointer to manager</span></td></tr>
+<tr><td class="num" id="LN721">721</td><td class="line"> <span class='comment'>*/</span></td></tr>
+<tr><td class="num" id="LN722">722</td><td class="line"><span class='keyword'>struct</span> upipe_mgr *upipe_sws_mgr_alloc(<span class='keyword'>void</span>)</td></tr>
+<tr><td class="num" id="LN723">723</td><td class="line">{</td></tr>
+<tr><td class="num" id="LN724">724</td><td class="line">    <span class='keyword'>return</span> &amp;upipe_sws_mgr;</td></tr>
+<tr><td class="num" id="LN725">725</td><td class="line">}</td></tr>
+<tr><td class="num" id="LN726">726</td><td class="line"> </td></tr>
 </table></body></html>
