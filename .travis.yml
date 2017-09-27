@@ -142,12 +142,3 @@ after_failure:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
-notifications:
-  irc:
-    channels:
-      - "chat.freenode.net#upipe"
-    on_success: never
-    on_failure: always
-    use_notice: true
-    skip_join: true
