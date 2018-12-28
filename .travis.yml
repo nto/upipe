@@ -120,6 +120,17 @@ before_install:
     sudo ldconfig;
     cd ..
 
+  # bearssl
+  - wget https://www.bearssl.org/bearssl-0.6.tar.gz;
+    tar xf bearssl-0.6.tar.gz;
+    make -C bearssl-0.6
+      CC="$HOST_CC"
+      LD="$HOST_CC"
+      LDDLL="$HOST_CC" || exit 1;
+    sudo install bearssl-0.6/inc/*.h /usr/local/include/;
+    sudo install bearssl-0.6/build/libbearssl.a /usr/local/lib/;
+    sudo ldconfig || true
+
   # disable valgrind on os x
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then
       export DISABLE_VALGRIND=1;
@@ -147,7 +158,7 @@ script:
       DISTCHECK_CONFIGURE_FLAGS="$CONFIGURE_FLAGS"
       TEST_SUITE_LOG="$PWD/tests.log"
   - make check-whitespace
-  - for i in bitstream usr-bitstream SSMAMTtools v1.2.4.tar.gz libebur128-1.2.4 libdvbcsa upipe-*; do
+  - for i in bitstream usr-bitstream SSMAMTtools v1.2.4.tar.gz libebur128-1.2.4 libdvbcsa bearssl-0.6.tar.gz bearssl-0.6 upipe-*; do
       echo "/$i" >> .gitignore;
     done &&
     make check-untracked
