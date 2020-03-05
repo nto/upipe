@@ -17,11 +17,11 @@ if HAVE_BITSTREAM
 libupipe_filters_la_SOURCES += upipe_filter_vanc.c \
     upipe_rtp_feedback.c \
     upipe_rtcp_fb_receiver.c
-libupipe_filters_la_CFLAGS = $(AM_CFLAGS) $(BITSTREAM_CFLAGS)
+libupipe_filters_la_CFLAGS = $(AM_CFLAGS) $(BITSTREAM_CFLAGS) $(AVUTIL_CFLAGS)
 endif
 
 libupipe_filters_la_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include
-libupipe_filters_la_LIBADD = $(top_builddir)/lib/upipe-modules/libupipe_modules.la $(top_builddir)/lib/upipe-modules/libupipe_modules.la
+libupipe_filters_la_LIBADD = $(top_builddir)/lib/upipe-modules/libupipe_modules.la $(top_builddir)/lib/upipe-modules/libupipe_modules.la $(AVUTIL_LIBS)
 libupipe_filters_la_LDFLAGS = -no-undefined
 
 pkgconfigdir = $(libdir)/pkgconfig
