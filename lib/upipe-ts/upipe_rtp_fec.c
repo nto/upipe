@@ -568,6 +568,9 @@ static void clear_fec(struct upipe *upipe)
 
     memset(upipe_rtp_fec->recent, 0xff, 2 * upipe_rtp_fec->rows *
             upipe_rtp_fec->cols * sizeof(*upipe_rtp_fec->recent));
+
+    /* Make sure latency is updated later */
+    upipe_rtp_fec_set_upump(upipe, NULL);
 }
 
 static void upipe_rtp_fec_start_timer(struct upipe *upipe, uint16_t seqnum)
