@@ -80,6 +80,7 @@ jobs:
       - name: Install compiler (gcc)
         if: runner.os == 'Linux' && matrix.compiler == 'gcc'
         run: |
+          sudo rm /etc/apt/sources.list.d/*
           sudo dpkg --add-architecture ${{ matrix.arch }}
           sudo sed 's/^deb /deb [arch=amd64,i386] /' -i /etc/apt/sources.list
           sudo apt-add-repository -n -y "deb [arch=arm64,armhf] http://ports.ubuntu.com $(lsb_release -sc) main universe"
@@ -124,6 +125,7 @@ jobs:
       - name: Install compiler (clang)
         if: runner.os == 'Linux' && matrix.compiler == 'clang'
         run: |
+          sudo rm /etc/apt/sources.list.d/*
           wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
           sudo add-apt-repository -y "deb http://apt.llvm.org/$(lsb_release -sc)/ llvm-toolchain-$(lsb_release -sc)-${{ matrix.version }} main"
           sudo apt-get update
