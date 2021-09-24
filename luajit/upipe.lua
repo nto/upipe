@@ -33,11 +33,9 @@ require "upipe-helper"
 
 UCLOCK_FREQ = 27000000
 
-setmetatable(_G, { __index = C })
-
 function ubase_assert(command)
-    if not ubase_check(command) then
-        local msg = ubase_err_str(command)
+    if not C.ubase_check(command) then
+        local msg = C.ubase_err_str(command)
         error(msg ~= nil and ffi.string(msg) or "UBASE_ERR_" .. command, 2)
     end
 end

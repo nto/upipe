@@ -11,6 +11,5 @@ Bugs documentation:
 luajit bindings:
  - add syntax shortcut for setting controls during pipe creation
  - write documentation
- - fix global namespace pollution
  - fix callbacks leaks
  - improve va_list support

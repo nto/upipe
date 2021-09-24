@@ -131,7 +131,11 @@ ifneq ($(LUAJIT),)
 	export DYLD_INSERT_LIBRARIES="$(INSERT_LIBRARIES)"; \
 	$(LUAJIT) $(srcdir)/check.lua $(LIST) && \
 	$(LUAJIT) $(srcdir)/examples/upipe_duration.lua \
-	  $(top_srcdir)/tests/upipe_ts_test.ts
+	  $(top_srcdir)/tests/upipe_ts_test.ts && \
+	$(LUAJIT) $(srcdir)/examples/extract_pic.lua \
+	  $(top_srcdir)/tests/upipe_ts_test.ts /dev/null && \
+	$(LUAJIT) $(srcdir)/examples/upipe_xor.lua \
+	  $(top_srcdir)/tests/upipe_ts_test.ts /dev/null
 endif
 
 installcheck:

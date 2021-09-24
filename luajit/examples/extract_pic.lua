@@ -1,5 +1,6 @@
 #!/usr/bin/env luajit
 
+local ffi = require "ffi"
 local upipe = require "upipe"
 
 require "upump-ev"
@@ -10,7 +11,7 @@ require "upipe-framers"
 require "upipe-filters"
 require "upipe-swscale"
 
-local UPROBE_LOG_LEVEL = UPROBE_LOG_INFO
+local UPROBE_LOG_LEVEL = 'UPROBE_LOG_INFO'
 
 local src_path = assert(arg[1])
 local dst_path = assert(arg[2])
@@ -27,15 +28,13 @@ local null = upipe.null():new(pfx("null") .. probe)
 
 -- file source
 local source = upipe.fsrc():new(pfx("src") .. probe)
-if not ubase_check(source:set_uri(src_path)) then
-    os.exit(1)
-end
+source.uri = src_path
 
 local split_pipe
 
 -- other probes
 local uref_probe = uprobe {
-    probe_uref = function (probe, pipe, ref, drop)
+    probe_uref = function (probe, pipe, ref, pump_p, drop)
         if source then
             -- release the source to exit
             source:release()
@@ -58,7 +57,7 @@ local avcdec_probe = uprobe {
         local sar = flow_def:pic_flow_get_sar()
         if not hsize or not sar then
             pipe:err_va("incompatible flow def")
-            return "unhandled"
+            return 'unhandled'
         end
 
         local wanted_hsize = (hsize * sar.num / sar.den / 2) * 2
@@ -86,7 +85,7 @@ local avcdec_probe = uprobe {
             probe)
 
         local fsink = upipe.fsink():new(pfx("sink") .. probe)
-        fsink:fsink_set_path(dst_path, "UPIPE_FSINK_OVERWRITE")
+        ubase_assert(fsink:fsink_set_path(dst_path, 'UPIPE_FSINK_OVERWRITE'))
 
         pipe.output = ffmt .. jpegenc .. urefprobe .. fsink
     end
@@ -102,7 +101,7 @@ local split_probe = uprobe {
     end
 }
 
-upipe_av_init(true, (pfx("av") .. probe):use())
+ffi.C.upipe_av_init(true, (pfx("av") .. probe):use())
 
 -- ts demux
 local ts_demux_mgr = upipe.ts_demux()
@@ -110,8 +109,8 @@ ts_demux_mgr.autof_mgr = upipe.autof()
 
 source.output = ts_demux_mgr:new(
     pfx("ts demux") ..
-    uprobe.selflow(UPROBE_SELFLOW_VOID, "auto",
-        uprobe.selflow(UPROBE_SELFLOW_PIC, "auto",
+    uprobe.selflow('UPROBE_SELFLOW_VOID', "auto",
+        uprobe.selflow('UPROBE_SELFLOW_PIC', "auto",
             split_probe ..
             probe) ..
         probe) ..

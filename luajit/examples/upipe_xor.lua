@@ -6,7 +6,9 @@ local upipe = require "upipe"
 require "upump-ev"
 require "upipe-modules"
 
-local UPROBE_LOG_LEVEL = UPROBE_LOG_INFO
+local UPROBE_LOG_LEVEL = 'UPROBE_LOG_INFO'
+
+local ubase_check = ffi.C.ubase_check
 
 if #arg ~= 2 then
     io.stderr:write("Usage: ", arg[0], " <input> <output>\n")
@@ -50,7 +52,7 @@ local upipe_xor_mgr = upipe {
     control = {
         set_flow_def = function (pipe, flow_def)
             if not ubase_check(flow_def:flow_match_def("block.")) then
-                return "invalid"
+                return 'invalid'
             end
             pipe:helper_store_flow_def(flow_def:dup())
         end
