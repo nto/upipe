@@ -8,5 +8,5 @@ TMP="`mktemp -d tmp.XXXXXXXXXX`"
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT
 
-"$srcdir"/valgrind_wrapper.sh "$srcdir" ./upipe_file_test Makefile "$TMP"/test
-cmp --quiet "$TMP"/test Makefile
+"$srcdir"/valgrind_wrapper.sh "$srcdir" ./upipe_file_test upipe_file_test "$TMP"/test
+cmp --quiet "$TMP"/test upipe_file_test
