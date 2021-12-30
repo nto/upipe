@@ -113,6 +113,7 @@ jobs:
           fi
           if [ -n "${{ matrix.host }}" ]; then
             set-env HOST "--host=${{ matrix.host }}"
+            set-env CROSS "CROSS=${{ matrix.host }}-"
           fi
           if [ "${{ matrix.sanitizer }}" = "true" ]; then
             SAN="-fsanitize=undefined -fsanitize=address,pointer-compare,pointer-subtract"
@@ -136,7 +137,8 @@ jobs:
         env:
           LIBS: >
             ev asound2 x264 x265 speexdsp png freetype6 zvbi gcrypt tasn1 dvbv5
-            udev avcodec avformat swresample swscale gl1-mesa glu1-mesa srt ssl
+            udev avcodec avformat avfilter swresample swscale gl1-mesa glu1-mesa
+            srt ssl
           LIBS_FULL: ebur128 dvbcsa
         run: |
           if [ "${{ matrix.arch }}" != "i386" ]; then
@@ -161,17 +163,14 @@ jobs:
           set-env CFLAGS "-Wno-error=unused-command-line-argument -fsanitize=undefined -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-optimize-sibling-calls"
           set-env LDFLAGS "-fsanitize=undefined -fsanitize=address"
           set-env DISABLE_VALGRIND "1"
-          set-env INSERT_LIBRARIES "$(clang -print-search-dirs | sed -n 's/^libraries: =//p')/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"
+          set-env LD_INSERT_LIBRARIES "$(clang -print-search-dirs | sed -n 's/^libraries: =//p')/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"
+          set-env LLVM_DWARFDUMP "dwarfdump"
 
       - name: Install bitstream
         run: |
           git clone --depth 1 https://code.videolan.org/videolan/bitstream.git
           make -C bitstream install PREFIX="$PWD/usr-bitstream"
           set-env PKG_CONFIG_PATH "$PKG_CONFIG_PATH:$PWD/usr-bitstream/share/pkgconfig"
-          if [ "${{ matrix.static }}" = "true" ]; then
-            STATIC="--disable-shared"
-          fi
-          set-env CONFIGURE_FLAGS "--enable-luajit $STATIC --disable-silent-rules $HOST CC=\"$HOST_CC\" CXX=\"$HOST_CXX\" CFLAGS=\"-Werror -O2 -g $CFLAGS\" CXXFLAGS=\"-Werror -O2 -g $CXXFLAGS\" LDFLAGS=\"$LDFLAGS\""
 
       - name: Build and install libamt
         if: runner.os == 'Linux' && (matrix.arch == 'amd64' || matrix.arch == 'i386')
@@ -198,23 +197,18 @@ jobs:
 
       - name: Configure
         run: |
-          autoreconf -i
-          sed -i='' 's/|-stdlib=\*)/|-stdlib=\*|-fsanitize=*)/' autotools/ltmain.sh
-          eval ./configure $CONFIGURE_FLAGS
-
-      - name: Archive config log
-        if: always()
-        uses: actions/upload-artifact@v1
-        with:
-          name: ${{ matrix.name }}_config.log
-          path: config.log
+          if [ "${{ matrix.static }}" = "true" ]; then
+            STATIC="have_shared="
+          fi
+          make config.mk VERBOSE_CONFIG=1 $STATIC $CROSS \
+            CC="$HOST_CC" \
+            CXX="$HOST_CXX" \
+            CFLAGS="-fdiagnostics-color=always -Werror -O2 -g $CFLAGS" \
+            CXXFLAGS="-fdiagnostics-color=always -Werror -O2 -g $CXXFLAGS" \
+            LDFLAGS="$LDFLAGS"
 
       - name: Build and test
-        run: >
-          make distcheck
-          DISTCHECK_CONFIGURE_FLAGS="$CONFIGURE_FLAGS"
-          AM_COLOR_TESTS="always"
-          VERBOSE=1
+        run: make distcheck config=config.mk VERBOSE=1 VERBOSE_TESTS=1
 
   coding-style:
     runs-on: ubuntu-20.04
@@ -229,19 +223,17 @@ jobs:
           sudo apt-get install libev-dev libavutil-dev libdvbcsa-dev libsrt-dev
 
       - name: Configure
-        run: |
-          autoreconf -i
-          ./configure
+        run: make config.mk
 
       - name: Check whitespaces
-        run: make check-whitespace
+        run: make config=config.mk check-whitespace
 
       - name: Check headers
         env:
           AM_COLOR_TESTS: always
-        run: make check-headers
+        run: make config=config.mk check-headers
 
       - name: Check tests
         env:
           AM_COLOR_TESTS: always
-        run: make check-tests
+        run: make config=config.mk check-tests
