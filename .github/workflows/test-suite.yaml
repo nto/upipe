@@ -45,6 +45,7 @@ jobs:
             host: arm-linux-gnueabihf
             compiler: gcc
             version: 14
+            sanitizer: true
 
           - name: ubuntu-arm64-gcc-14
             os: ubuntu-24.04
@@ -52,6 +53,7 @@ jobs:
             host: aarch64-linux-gnu
             compiler: gcc
             version: 14
+            sanitizer: true
 
           - name: macos-13-amd64-xcode
             os: macos-13
@@ -112,6 +114,10 @@ jobs:
             set-env CXXFLAGS "$SAN"
             set-env LDFLAGS "$SAN"
             set-env UBSAN_OPTIONS "print_stacktrace=1"
+            if [ "${{ matrix.arch }}" != "amd64" ]; then
+              set-env ASAN_OPTIONS detect_leaks=0
+              set-env LD_LIBRARY_PATH /usr/${{ matrix.host }}/lib/
+            fi
           fi
 
       - name: Install compiler (clang)
