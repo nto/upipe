@@ -109,7 +109,7 @@ jobs:
             set-env HOST "--host=${{ matrix.host }}"
           fi
           if [ "${{ matrix.sanitizer }}" = "true" ]; then
-            SAN="-fsanitize=undefined -fsanitize=address,pointer-compare,pointer-subtract"
+            SAN="-fsanitize=undefined -fsanitize=address,pointer-compare,pointer-subtract -fno-sanitize-recover=all"
             set-env CFLAGS "$SAN"
             set-env CXXFLAGS "$SAN"
             set-env LDFLAGS "$SAN"
@@ -166,7 +166,7 @@ jobs:
           BREW_PREFIX="$(brew --prefix)"
           set-env HOST_CC "clang"
           set-env HOST_CXX "clang++"
-          set-env CFLAGS "-Wno-error=deprecated-declarations -fsanitize=undefined -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls -I$BREW_PREFIX/include"
+          set-env CFLAGS "-Wno-error=deprecated-declarations -fsanitize=undefined -fsanitize=address -fsanitize-address-use-after-scope -fno-sanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls -I$BREW_PREFIX/include"
           set-env LDFLAGS "-fsanitize=undefined -fsanitize=address -L$BREW_PREFIX/lib"
           set-env DISABLE_VALGRIND "1"
           set-env INSERT_LIBRARIES "$(clang -print-search-dirs | sed -n 's/^libraries: =//p')/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"
