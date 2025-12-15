@@ -96,13 +96,6 @@ jobs:
             set-env HOST "--host=${{ matrix.host }}"
             set-env PKG_CONFIG_LIBDIR "/usr/lib/${{ matrix.host }}/pkgconfig"
           fi
-          if [ "${{ matrix.sanitizer }}" = "true" ]; then
-            SAN="-fsanitize=undefined -fsanitize=address,pointer-compare,pointer-subtract"
-            set-env CFLAGS "$SAN"
-            set-env CXXFLAGS "$SAN"
-            set-env LDFLAGS "$SAN"
-            set-env UBSAN_OPTIONS "print_stacktrace=1"
-          fi
 
       - name: Install compiler (clang)
         if: runner.os == 'Linux' && matrix.compiler == 'clang'
@@ -128,9 +121,6 @@ jobs:
           sudo apt-get install valgrind nasm elfutils \
             $(printf '%s:${{ matrix.arch }} ' libc6-dbg luajit) \
             $(printf 'lib%s-dev:${{ matrix.arch }} ' $LIBS)
-          if [ -n "${{ matrix.host }}" ]; then
-              set-env DISABLE_VALGRIND "1"
-          fi
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
@@ -140,11 +130,8 @@ jobs:
           BREW_PREFIX="$(brew --prefix)"
           set-env HOST_CC "clang"
           set-env HOST_CXX "clang++"
-          set-env CFLAGS "-Wno-error=deprecated-declarations -fsanitize=undefined -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-recover=all -fno-omit-frame-pointer -fno-optimize-sibling-calls -I$BREW_PREFIX/include"
-          set-env LDFLAGS "-fsanitize=undefined -fsanitize=address -L$BREW_PREFIX/lib"
-          set-env DISABLE_VALGRIND "1"
-          set-env LD_INSERT_LIBRARIES "$(clang -print-search-dirs | sed -n 's/^libraries: =//p')/lib/darwin/libclang_rt.asan_osx_dynamic.dylib"
-          set-env UBSAN_OPTIONS "print_stacktrace=1"
+          set-env CFLAGS "-I$BREW_PREFIX/include"
+          set-env LDFLAGS "-L$BREW_PREFIX/lib"
           set-env LLVM_DWARFDUMP "dwarfdump"
 
       - name: Install bitstream
@@ -190,7 +177,10 @@ jobs:
           if [ "${{ matrix.luajit }}" != "false" ]; then
             LUAJIT="--enable-luajit"
           fi
-          CONFIGURE_FLAGS="$LUAJIT $STATIC --disable-silent-rules $HOST CC=\"$HOST_CC\" CXX=\"$HOST_CXX\" CPPFLAGS=\"$CPPFLAGS\" CFLAGS=\"-Werror -Wno-deprecated-declarations -O2 -g -fdiagnostics-color=always $CFLAGS\" CXXFLAGS=\"-Werror -O2 -g -fdiagnostics-color=always $CXXFLAGS\" LDFLAGS=\"$LDFLAGS\""
+          if [ -n "${{ matrix.host }}" -o "${{ matrix.compiler }}" = "xcode" ]; then
+            SANITIZERS="--enable-asan --enable-ubsan"
+          fi
+          CONFIGURE_FLAGS="$LUAJIT $STATIC $SANITIZERS --disable-silent-rules $HOST CC=\"$HOST_CC\" CXX=\"$HOST_CXX\" CPPFLAGS=\"$CPPFLAGS\" CFLAGS=\"-Werror -Wno-deprecated-declarations -O2 -g -fdiagnostics-color=always $CFLAGS\" CXXFLAGS=\"-Werror -O2 -g -fdiagnostics-color=always $CXXFLAGS\" LDFLAGS=\"$LDFLAGS\""
           set-env CONFIGURE_FLAGS "$CONFIGURE_FLAGS"
           eval ./configure $CONFIGURE_FLAGS
           echo
