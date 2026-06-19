@@ -236,3 +236,33 @@ jobs:
         env:
           BUILD_COLORS: always
         run: make check-tests
+
+  code-analysis:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        env:
+          LIBS: >
+            ev asound2 x264 x265 speexdsp png freetype6 zvbi gcrypt tasn1 dvbv5
+            udev avcodec avformat avfilter swresample swscale gl1-mesa glu1-mesa
+            srt-gnutls gnutls28 ssl bearssl ebur128 dvbcsa pcap
+        run: |
+          sudo apt-get update
+          sudo apt-get install nasm $(printf 'lib%s-dev ' $LIBS)
+          git clone --depth 1 https://code.videolan.org/videolan/bitstream.git ../bitstream
+          sudo make -C ../bitstream install
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: c-cpp
+          queries: security-extended
+
+      - name: Build
+        run: make -j4 all-tests have_shared=
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v4
